@@ -1,4 +1,4 @@
-# ITopp — Detailed Implementation Plan (v2)
+﻿# ITopp — Detailed Implementation Plan (v2)
 
 Source of truth: `Untitled document (1).md` (PRD v1) + `README.md`.
 Current repo state: docs-only (`README.md`, PRD, `.gitignore` for `.env`, empty `.env.example`). No app code yet. Remote: `https://github.com/Bless202618/badge` (public, branch `main`).
@@ -33,6 +33,16 @@ Out of scope for v1 (must enforce in code reviews): no university dashboard, no 
    - Events: application status change, new auto-matched opening, report acknowledgment. Email via Resend or Supabase SMTP. Phase-2 reminders (logbook/evaluation) deferred.
 
 7. **Environments: `.env.example` must list `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` (server only), `RESEND_API_KEY`, `ADMIN_EMAIL`.** `.env` gitignored (already done).
+
+---
+
+## Interface Toolchain -- what to use to build the UI
+Use this exact toolchain so design -> code is consistent. All free for pilot. Full detail in INTERFACE_TOOLCHAIN.md.
+- Design mockups (before code): Figma free tier -- 1 file with Student feed, Posting detail, Company dashboard, Admin queue. Alternative: Penpot.
+- Frontend: Next.js App Router + TypeScript + Tailwind CSS (npx create-next-app --typescript --tailwind --app, then npx shadcn init).
+- Component kit: shadcn/ui + Radix Primitives + lucide-react + clsx/tailwind-merge (Button, Input, Badge, Card, Dialog, Toast, Table, Tabs, Skeleton).
+- Forms: React Hook Form + Zod for every profile/posting/apply form (CGPA range, 5MB file limit, required fields).
+- Preview: app/design page showing all states + Vercel preview per push.
 
 ---
 
