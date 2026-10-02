@@ -1,4 +1,4 @@
-﻿import Link from "next/link";
+import Link from "next/link";
 import { ShieldCheck, Search, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -9,17 +9,17 @@ export default function Home() {
         VERIFIED IT PLACEMENTS
       </p>
       <h1 className="text-4xl font-extrabold tracking-tight">
-        ITopp â€” real openings,
+        ITopp — real openings,
         <br />
         zero guesswork.
       </h1>
       <p className="max-w-md text-[#6B7280]">
         Verified companies meet verified 400-level students. Matched discovery,
-        structured applications, and clear status tracking â€” Applied â†’
-        Shortlisted â†’ Accepted.
+        structured applications, and clear status tracking — Applied →
+        Shortlisted → Accepted.
       </p>
       <div className="flex flex-wrap justify-center gap-3">
-        <Button nativeButton={false} render={<Link href="/signup">Get started â€” it&apos;s free</Link>} />
+        <Button nativeButton={false} render={<Link href="/signup">Get started — it&apos;s free</Link>} />
         <Button
           variant="outline"
           nativeButton={false} render={<Link href="/login">Log in</Link>}
@@ -44,7 +44,7 @@ export default function Home() {
           <Bell className="mb-2 size-5 text-[#D97706]" />
           <b className="text-sm">Always in the loop</b>
           <p className="text-xs text-[#6B7280]">
-            Status changes, new matches, report updates â€” max 5 active
+            Status changes, new matches, report updates — max 5 active
             applications.
           </p>
         </div>
