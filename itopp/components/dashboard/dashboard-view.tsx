@@ -57,6 +57,12 @@ export function DashboardView({ data }: { data: DashboardData | null }) {
           <StatusBadge status={user.status} />
           <span className="text-[#6B7280]">{user.email}</span>
           <span className="flex-1" />
+          <Button
+            size="sm"
+            variant="outline"
+            nativeButton={false}
+            render={<Link href="/settings/password">Change password</Link>}
+          />
           <Button variant="outline" size="sm" onClick={logout} disabled={busy}>
             Log out
           </Button>

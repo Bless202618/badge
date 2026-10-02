@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { cookies } from "next/headers";
 import { z } from "zod";
 import { db } from "./db";
 import {
@@ -83,6 +84,43 @@ export async function loginAction(input: {
 export async function logoutAction(): Promise<ActionResult> {
   await destroySession();
   revalidatePath("/");
+  return { ok: true };
+}
+
+const passwordChangeSchema = z.object({
+  currentPassword: z.string().min(1),
+  newPassword: z.string().min(6).max(100),
+});
+
+export async function changePasswordAction(input: {
+  currentPassword: string;
+  newPassword: string;
+}): Promise<ActionResult> {
+  const me = await getSessionUser();
+  if (!me) return { ok: false, error: "Log in first." };
+  const parsed = passwordChangeSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false, error: "New password needs at least 6 characters." };
+  }
+
+  const full = await db.user.findUnique({ where: { id: me.id } });
+  if (!full || !full.passwordHash) return { ok: false, error: "Log in first." };
+  const good = await verifyPassword(
+    parsed.data.currentPassword,
+    full.passwordHash
+  );
+  if (!good) return { ok: false, error: "Current password is wrong." };
+
+  await db.user.update({
+    where: { id: me.id },
+    data: { passwordHash: await hashPassword(parsed.data.newPassword) },
+  });
+  // Log out everywhere else: drop all other sessions, keep this one.
+  const jar = await cookies();
+  const mine = jar.get("itopp_session")?.value;
+  await db.session.deleteMany({
+    where: { userId: me.id, ...(mine ? { token: { not: mine } } : {}) },
+  });
   return { ok: true };
 }
 
