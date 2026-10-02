@@ -366,3 +366,109 @@ export async function setPostingStatusAction(input: {
   revalidatePath("/admin/postings");
   return { ok: true };
 }
+
+// ---------------------------------------------------------------------------
+// Applications (Phase 4 student side) — max 5 active per student.
+// Active = applied + shortlisted. Withdrawn/rejected free the slot.
+// ---------------------------------------------------------------------------
+const applySchema = z.object({
+  postingId: z.string().min(1),
+  answers: z.array(z.string().trim().max(2000)).max(10),
+});
+
+export async function applyAction(input: {
+  postingId: string;
+  answers: string[];
+}): Promise<ActionResult> {
+  const me = await getSessionUser();
+  if (!me || me.role !== "student") return { ok: false, error: "Students only." };
+  if (me.status !== "verified") {
+    return { ok: false, error: "Get verified before applying." };
+  }
+  const parsed = applySchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: "Check your answers and try again." };
+
+  const posting = await db.posting.findUnique({
+    where: { id: parsed.data.postingId },
+    include: { company: { include: { user: true } } },
+  });
+  if (
+    !posting ||
+    posting.status !== "active" ||
+    posting.company.verificationStatus !== "verified" ||
+    posting.company.user.status !== "verified"
+  ) {
+    return { ok: false, error: "This opening is no longer accepting applications." };
+  }
+
+  const mine = await db.application.findMany({
+    where: {
+      studentId: me.id,
+      status: { in: ["applied", "shortlisted"] },
+    },
+    select: { id: true, postingId: true },
+  });
+  if (mine.some((a) => a.postingId === posting.id)) {
+    return { ok: false, error: "You already applied to this opening." };
+  }
+  if (mine.length >= 5) {
+    return {
+      ok: false,
+      error: "You have 5 active applications (the max). Withdraw one to free a slot.",
+    };
+  }
+
+  const questions = Array.isArray(posting.customQuestions)
+    ? (posting.customQuestions as string[])
+    : [];
+  const paired = questions.map((q, i) => ({
+    question: q,
+    answer: parsed.data.answers[i] ?? "",
+  }));
+
+  const application = await db.application.create({
+    data: {
+      postingId: posting.id,
+      studentId: me.id,
+      answers: paired,
+      status: "applied",
+    },
+  });
+
+  // Tell the company (shown in their inbox in Phase 6).
+  await db.notification.create({
+    data: {
+      userId: posting.company.userId,
+      type: "new_application",
+      title: `New application: ${posting.title}`,
+      body: `${me.name} just applied.`,
+    },
+  });
+
+  revalidatePath("/applications");
+  revalidatePath(`/openings/${posting.id}`);
+  return { ok: true };
+}
+
+export async function withdrawAction(input: {
+  applicationId: string;
+}): Promise<ActionResult> {
+  const me = await getSessionUser();
+  if (!me || me.role !== "student") return { ok: false, error: "Students only." };
+
+  const app = await db.application.findUnique({
+    where: { id: input.applicationId },
+  });
+  if (!app || app.studentId !== me.id) {
+    return { ok: false, error: "Application not found." };
+  }
+  if (app.status !== "applied" && app.status !== "shortlisted") {
+    return { ok: false, error: "Only pending applications can be withdrawn." };
+  }
+  await db.application.update({
+    where: { id: app.id },
+    data: { status: "withdrawn" },
+  });
+  revalidatePath("/applications");
+  return { ok: true };
+}

@@ -33,6 +33,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
               ITopp
             </Link>
             <div className="flex items-center gap-4">
+              <Link href="/openings" className="hover:text-[#0B5FFF]">
+                Openings
+              </Link>
               <Link href="/dashboard" className="hover:text-[#0B5FFF]">
                 Dashboard
               </Link>

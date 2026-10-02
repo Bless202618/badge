@@ -86,10 +86,16 @@ export function DashboardView({ data }: { data: DashboardData | null }) {
                 className="justify-start"
                 nativeButton={false} render={<Link href="/student/profile">My student profile</Link>}
               />
-              <p className="text-xs text-[#6B7280]">
-                Postings + applications unlock here in Phase 3â€“4, after you are
-                verified.
-              </p>
+              <Button
+                variant="outline"
+                className="justify-start"
+                nativeButton={false} render={<Link href="/openings">Browse openings</Link>}
+              />
+              <Button
+                variant="outline"
+                className="justify-start"
+                nativeButton={false} render={<Link href="/applications">My applications</Link>}
+              />
             </>
           )}
           {isCompany && (
