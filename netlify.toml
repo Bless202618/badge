@@ -1,0 +1,14 @@
+# Netlify deploy config — auto-detected on import, zero manual build setup.
+# Team: free tier. Site gets https://<your-name>.netlify.app free.
+# REQUIRED in Netlify UI → Site settings → Environment variables:
+#   DATABASE_URL = session/transaction pooler string (see BACKUP.md pattern)
+#   For serverless, use the TRANSACTION pooler (port 6543) + suffix:
+#   ?pgbouncer=true&connection_limit=1
+[build]
+  base = "itopp"
+  command = "npx prisma generate && npm run build"
+  publish = ".next"
+
+[build.environment]
+  NODE_VERSION = "24"
+  NEXT_TELEMETRY_DISABLED = "1"
