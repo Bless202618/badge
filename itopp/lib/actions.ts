@@ -11,7 +11,7 @@ import {
   hashPassword,
   verifyPassword,
 } from "./auth";
-import { DEPARTMENTS, LEVELS } from "./options";
+import { DEPARTMENTS, LEVELS, REPORT_REASONS } from "./options";
 
 export type ActionResult = { ok: true; role?: string } | { ok: false; error: string };
 
@@ -669,14 +669,6 @@ export async function rateAction(input: {
 // ---------------------------------------------------------------------------
 // Reports (Phase 6) — anyone logged in can file; you resolve within 48h.
 // ---------------------------------------------------------------------------
-const REPORT_REASONS = [
-  "Scam / fake opening",
-  "Asks for payment",
-  "Ghosted after shortlist",
-  "Unsafe workplace",
-  "Other",
-] as [string, ...string[]];
-
 const reportSchema = z.object({
   companyId: z.string().min(1),
   postingId: z.string().min(1).optional(),
@@ -807,5 +799,3 @@ export async function markNotificationsReadAction(): Promise<ActionResult> {
   revalidatePath("/notifications");
   return { ok: true };
 }
-
-export { REPORT_REASONS };

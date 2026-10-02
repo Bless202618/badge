@@ -54,3 +54,12 @@ export const DEPARTMENTS: [string, ...string[]] = [
 ];
 
 export const LEVELS: [string, ...string[]] = ["400 Level", "500 Level"];
+
+// Report reasons (shared by the report dialog + server validation).
+export const REPORT_REASONS: [string, ...string[]] = [
+  "Scam / fake opening",
+  "Asks for payment",
+  "Ghosted after shortlist",
+  "Unsafe workplace",
+  "Other",
+];

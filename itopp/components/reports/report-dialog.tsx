@@ -19,7 +19,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { REPORT_REASONS, reportCompanyAction } from "@/lib/actions";
+import { reportCompanyAction } from "@/lib/actions";
+import { REPORT_REASONS } from "@/lib/options";
 
 export function ReportDialog({
   companyId,
