@@ -35,4 +35,6 @@ ITopp connects verified companies offering IT placements with verified 400-level
 - **Phase 3:** Monetization, expansion to more departments/universities
 
 ## Status
-Initial version — PRD defined, MVP in planning.
+MVP built and running on real Postgres — Phases 0–6 live (auth, verification,
+postings, matched feed, applications, ratings, reports, notifications).
+Phase 7 pilot kit: ONBOARDING.md + BACKUP.md + demo seeder (`npm run db:seed`).
