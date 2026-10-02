@@ -20,6 +20,11 @@ export default async function ApplicationsPage() {
     (a) => a.status === "applied" || a.status === "shortlisted"
   ).length;
 
+  const myRatings = await db.rating.findMany({
+    where: { applicationId: { in: apps.map((a) => a.id) }, fromId: me.id },
+  });
+  const myRatingMap = new Map(myRatings.map((r) => [r.applicationId, r.score]));
+
   return (
     <main className="mx-auto max-w-3xl space-y-4 px-4 py-10">
       <div className="flex items-center justify-between">
@@ -39,6 +44,8 @@ export default async function ApplicationsPage() {
             Math.floor((now - a.createdAt.getTime()) / 86400000)
           ),
           active: a.status === "applied" || a.status === "shortlisted",
+          placementComplete: a.placementComplete,
+          myRating: myRatingMap.get(a.id) ?? null,
         }))}
       />
       <p className="text-sm">

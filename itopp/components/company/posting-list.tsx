@@ -68,6 +68,12 @@ export function PostingList({ postings }: { postings: PostingRow[] }) {
               nativeButton={false}
               render={<Link href={`/company/postings/${p.id}/edit`}>Edit</Link>}
             />
+            <Button
+              size="sm"
+              variant="outline"
+              nativeButton={false}
+              render={<Link href={`/company/postings/${p.id}/applicants`}>Applicants ({p.applicantCount})</Link>}
+            />
             {p.status === "active" ? (
               <Button
                 size="sm"

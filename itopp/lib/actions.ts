@@ -71,6 +71,9 @@ export async function loginAction(input: {
   }
   const good = await verifyPassword(parsed.data.password, user.passwordHash);
   if (!good) return { ok: false, error: "Wrong password. Try again." };
+  if (user.status === "suspended") {
+    return { ok: false, error: "This account is suspended. Contact support." };
+  }
 
   await createSession(user.id);
   revalidatePath("/dashboard");
@@ -472,3 +475,299 @@ export async function withdrawAction(input: {
   revalidatePath("/applications");
   return { ok: true };
 }
+
+// ---------------------------------------------------------------------------
+// Company review (Phase 5) — shortlist / accept / reject + mark complete.
+// Every change notifies the student.
+// ---------------------------------------------------------------------------
+const reviewAppSchema = z.object({
+  applicationId: z.string().min(1),
+  status: z.enum(["shortlisted", "accepted", "rejected"]),
+});
+
+async function ownApplication(
+  meId: string,
+  applicationId: string,
+  adminOk: boolean
+) {
+  const app = await db.application.findUnique({
+    where: { id: applicationId },
+    include: { posting: { include: { company: true } }, student: true },
+  });
+  if (!app) return null;
+  if (adminOk) return app;
+  if (app.posting.company.userId !== meId) return null;
+  return app;
+}
+
+export async function setApplicationStatusAction(input: {
+  applicationId: string;
+  status: "shortlisted" | "accepted" | "rejected";
+}): Promise<ActionResult> {
+  const me = await getSessionUser();
+  if (!me || (me.role !== "company" && me.role !== "admin")) {
+    return { ok: false, error: "Companies only." };
+  }
+  const parsed = reviewAppSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: "Invalid request." };
+
+  const app = await ownApplication(me.id, parsed.data.applicationId, me.role === "admin");
+  if (!app) return { ok: false, error: "Application not found." };
+  if (app.status === "withdrawn") {
+    return { ok: false, error: "Student withdrew this application." };
+  }
+
+  await db.application.update({
+    where: { id: app.id },
+    data: { status: parsed.data.status },
+  });
+  const label =
+    parsed.data.status === "shortlisted"
+      ? "Shortlisted"
+      : parsed.data.status === "accepted"
+        ? "Accepted"
+        : "Rejected";
+  await db.notification.create({
+    data: {
+      userId: app.studentId,
+      type: "status_change",
+      title: `${label}: ${app.posting.title}`,
+      body: `${app.posting.company.companyName} ${parsed.data.status === "rejected" ? "rejected your application." : `moved you to ${label}. Watch your email/phone — interviews happen off-app.`}`,
+    },
+  });
+  revalidatePath(`/company/postings/${app.postingId}/applicants`);
+  revalidatePath("/applications");
+  return { ok: true };
+}
+
+export async function completePlacementAction(input: {
+  applicationId: string;
+}): Promise<ActionResult> {
+  const me = await getSessionUser();
+  if (!me || me.role !== "company") return { ok: false, error: "Companies only." };
+
+  const app = await ownApplication(me.id, input.applicationId, false);
+  if (!app) return { ok: false, error: "Application not found." };
+  if (app.status !== "accepted") {
+    return { ok: false, error: "Only accepted placements can be completed." };
+  }
+  await db.application.update({
+    where: { id: app.id },
+    data: { placementComplete: true },
+  });
+  await db.notification.create({
+    data: {
+      userId: app.studentId,
+      type: "placement_complete",
+      title: `Placement complete: ${app.posting.title}`,
+      body: "Please rate your experience with this company.",
+    },
+  });
+  revalidatePath(`/company/postings/${app.postingId}/applicants`);
+  revalidatePath("/applications");
+  return { ok: true };
+}
+
+// ---------------------------------------------------------------------------
+// Ratings (Phase 6) — one per person per placement, only when complete.
+// ---------------------------------------------------------------------------
+const rateSchema = z.object({
+  applicationId: z.string().min(1),
+  score: z.number().int().min(1).max(5),
+  comment: z.string().trim().max(500).optional(),
+});
+
+export async function rateAction(input: {
+  applicationId: string;
+  score: number;
+  comment?: string;
+}): Promise<ActionResult> {
+  const me = await getSessionUser();
+  if (!me) return { ok: false, error: "Log in first." };
+  const parsed = rateSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: "Score must be 1–5." };
+
+  const app = await db.application.findUnique({
+    where: { id: parsed.data.applicationId },
+    include: { posting: { include: { company: true } } },
+  });
+  if (!app || !app.placementComplete) {
+    return { ok: false, error: "Ratings open after the placement is marked complete." };
+  }
+  const isStudent = me.role === "student" && app.studentId === me.id;
+  const isCompany = me.role === "company" && app.posting.company.userId === me.id;
+  if (!isStudent && !isCompany) return { ok: false, error: "Not your placement." };
+
+  const toId = isStudent ? app.posting.company.userId : app.studentId;
+  const dupe = await db.rating.findUnique({
+    where: {
+      fromId_toId_applicationId: { fromId: me.id, toId, applicationId: app.id },
+    },
+  });
+  if (dupe) return { ok: false, error: "You already rated this placement." };
+
+  await db.rating.create({
+    data: {
+      fromId: me.id,
+      toId,
+      applicationId: app.id,
+      score: parsed.data.score,
+      comment: parsed.data.comment?.trim() || null,
+    },
+  });
+  await db.notification.create({
+    data: {
+      userId: toId,
+      type: "new_rating",
+      title: `New ${parsed.data.score}/5 rating`,
+      body: `${me.name} rated placement "${app.posting.title}".`,
+    },
+  });
+  revalidatePath("/applications");
+  revalidatePath(`/company/postings/${app.postingId}/applicants`);
+  return { ok: true };
+}
+
+// ---------------------------------------------------------------------------
+// Reports (Phase 6) — anyone logged in can file; you resolve within 48h.
+// ---------------------------------------------------------------------------
+const REPORT_REASONS = [
+  "Scam / fake opening",
+  "Asks for payment",
+  "Ghosted after shortlist",
+  "Unsafe workplace",
+  "Other",
+] as [string, ...string[]];
+
+const reportSchema = z.object({
+  companyId: z.string().min(1),
+  postingId: z.string().min(1).optional(),
+  reason: z.enum(REPORT_REASONS),
+  details: z.string().trim().max(1000).optional(),
+});
+
+export async function reportCompanyAction(input: {
+  companyId: string;
+  postingId?: string;
+  reason: string;
+  details?: string;
+}): Promise<ActionResult> {
+  const me = await getSessionUser();
+  if (!me) return { ok: false, error: "Log in first." };
+  const parsed = reportSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: "Pick a valid reason." };
+
+  const company = await db.companyProfile.findUnique({
+    where: { id: parsed.data.companyId },
+  });
+  if (!company) return { ok: false, error: "Company not found." };
+
+  const report = await db.report.create({
+    data: {
+      reporterId: me.id,
+      companyId: company.id,
+      reason: parsed.data.reason,
+      details: parsed.data.details?.trim() || null,
+      status: "open",
+    },
+  });
+
+  // Acknowledgment to the reporter (instant).
+  await db.notification.create({
+    data: {
+      userId: me.id,
+      type: "report_ack",
+      title: "Report received",
+      body: `Report #${report.id.slice(-6)} is under review (48h SLA).`,
+    },
+  });
+  // Alert to you (admin).
+  const admins = await db.user.findMany({
+    where: { role: "admin" },
+    select: { id: true },
+  });
+  await db.notification.createMany({
+    data: admins.map((a) => ({
+      userId: a.id,
+      type: "new_report",
+      title: `New report: ${company.companyName}`,
+      body: `${parsed.data.reason} — reported by ${me.name}.`,
+    })),
+  });
+  revalidatePath("/admin/reports");
+  return { ok: true };
+}
+
+export async function resolveReportAction(input: {
+  reportId: string;
+  outcome: "resolved" | "dismissed";
+  suspendCompany: boolean;
+}): Promise<ActionResult> {
+  const me = await getSessionUser();
+  if (!me || me.role !== "admin") return { ok: false, error: "Admin only." };
+  const parsed = z
+    .object({
+      reportId: z.string().min(1),
+      outcome: z.enum(["resolved", "dismissed"]),
+      suspendCompany: z.boolean(),
+    })
+    .safeParse(input);
+  if (!parsed.success) return { ok: false, error: "Invalid request." };
+
+  const report = await db.report.findUnique({
+    where: { id: parsed.data.reportId },
+    include: { reporter: true },
+  });
+  if (!report) return { ok: false, error: "Report not found." };
+
+  await db.report.update({
+    where: { id: report.id },
+    data: { status: parsed.data.outcome, resolvedAt: new Date() },
+  });
+
+  if (parsed.data.suspendCompany) {
+    const company = await db.companyProfile.findUnique({
+      where: { id: report.companyId },
+    });
+    if (company) {
+      await db.user.update({
+        where: { id: company.userId },
+        data: { status: "suspended" },
+      });
+      await db.posting.updateMany({
+        where: { companyId: company.id, status: "active" },
+        data: { status: "suspended" },
+      });
+    }
+  }
+
+  await db.notification.create({
+    data: {
+      userId: report.reporterId,
+      type: "report_resolved",
+      title: `Report ${parsed.data.outcome}`,
+      body:
+        parsed.data.outcome === "resolved"
+          ? "Thanks — action was taken on your report."
+          : "After review, no violation was found. Thanks for reporting.",
+    },
+  });
+  revalidatePath("/admin/reports");
+  return { ok: true };
+}
+
+// ---------------------------------------------------------------------------
+// Notifications inbox (Phase 6)
+// ---------------------------------------------------------------------------
+export async function markNotificationsReadAction(): Promise<ActionResult> {
+  const me = await getSessionUser();
+  if (!me) return { ok: false, error: "Log in first." };
+  await db.notification.updateMany({
+    where: { userId: me.id, readAt: null },
+    data: { readAt: new Date() },
+  });
+  revalidatePath("/notifications");
+  return { ok: true };
+}
+
+export { REPORT_REASONS };

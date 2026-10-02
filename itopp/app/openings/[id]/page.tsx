@@ -6,6 +6,7 @@ import { getSessionUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { matchScore } from "@/lib/match";
 import { ApplyForm } from "@/components/openings/apply-form";
+import { ReportDialog } from "@/components/reports/report-dialog";
 
 export default async function OpeningDetailPage({
   params,
@@ -58,6 +59,12 @@ export default async function OpeningDetailPage({
   const canApply =
     me?.role === "student" && me.status === "verified" && !existing;
 
+  const companyAvg = await db.rating.aggregate({
+    where: { toId: posting.company.userId },
+    _avg: { score: true },
+    _count: true,
+  });
+
   return (
     <main className="mx-auto max-w-2xl space-y-4 px-4 py-10">
       <Card>
@@ -101,6 +108,24 @@ export default async function OpeningDetailPage({
             Interviews happen off-app: shortlisted students are contacted by
             the company directly.
           </p>
+          <div className="flex flex-wrap items-center gap-3 pt-1">
+            <span className="text-sm">
+              Company rating:{" "}
+              <b>
+                {companyAvg._count > 0
+                  ? `${companyAvg._avg.score?.toFixed(1)}/5 (${companyAvg._count})`
+                  : "No ratings yet"}
+              </b>
+            </span>
+            <span className="flex-1" />
+            {me && (
+              <ReportDialog
+                companyId={posting.company.id}
+                postingId={posting.id}
+                companyName={posting.company.companyName}
+              />
+            )}
+          </div>
         </CardContent>
       </Card>
 

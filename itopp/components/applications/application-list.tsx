@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { withdrawAction } from "@/lib/actions";
+import { RateForm } from "@/components/ratings/rate-form";
 
 export interface ApplicationRow {
   id: string;
@@ -14,6 +15,8 @@ export interface ApplicationRow {
   companyName: string;
   daysPending: number;
   active: boolean;
+  placementComplete: boolean;
+  myRating: number | null;
 }
 
 export function ApplicationList({
@@ -64,6 +67,15 @@ export function ApplicationList({
                 Withdraw
               </Button>
             )}
+          {a.placementComplete && (
+            <div className="w-full px-0 pt-2">
+              <RateForm
+                applicationId={a.id}
+                label={`Rate ${a.companyName}`}
+                existingScore={a.myRating}
+              />
+            </div>
+          )}
           </CardContent>
         </Card>
       ))}

@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
+import { getSessionUser } from "@/lib/auth";
+import { db } from "@/lib/db";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -20,7 +22,14 @@ export const metadata: Metadata = {
     "Verified companies meet verified 400-level students. Matched discovery, structured applications, clear status tracking.",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  const me = await getSessionUser();
+  const unread = me
+    ? await db.notification.count({
+        where: { userId: me.id, readAt: null },
+      })
+    : 0;
+
   return (
     <html
       lang="en"
@@ -36,15 +45,20 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
               <Link href="/openings" className="hover:text-[#0B5FFF]">
                 Openings
               </Link>
-              <Link href="/dashboard" className="hover:text-[#0B5FFF]">
-                Dashboard
-              </Link>
-              <Link href="/design" className="hover:text-[#0B5FFF]">
-                Design
-              </Link>
-              <Link href="/login" className="hover:text-[#0B5FFF]">
-                Log in
-              </Link>
+              {me ? (
+                <>
+                  <Link href="/notifications" className="hover:text-[#0B5FFF]">
+                    Notifications{unread > 0 ? ` (${unread})` : ""}
+                  </Link>
+                  <Link href="/dashboard" className="hover:text-[#0B5FFF]">
+                    Dashboard
+                  </Link>
+                </>
+              ) : (
+                <Link href="/login" className="hover:text-[#0B5FFF]">
+                  Log in
+                </Link>
+              )}
             </div>
           </nav>
         </header>

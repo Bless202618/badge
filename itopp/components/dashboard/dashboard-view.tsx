@@ -96,6 +96,11 @@ export function DashboardView({ data }: { data: DashboardData | null }) {
                 className="justify-start"
                 nativeButton={false} render={<Link href="/applications">My applications</Link>}
               />
+              <Button
+                variant="outline"
+                className="justify-start"
+                nativeButton={false} render={<Link href="/notifications">Notifications</Link>}
+              />
             </>
           )}
           {isCompany && (
@@ -126,6 +131,16 @@ export function DashboardView({ data }: { data: DashboardData | null }) {
                 variant="outline"
                 className="justify-start"
                 nativeButton={false} render={<Link href="/admin/postings">All openings</Link>}
+              />
+              <Button
+                variant="outline"
+                className="justify-start"
+                nativeButton={false} render={<Link href="/admin/reports">Reports</Link>}
+              />
+              <Button
+                variant="outline"
+                className="justify-start"
+                nativeButton={false} render={<Link href="/admin/metrics">Trust metrics</Link>}
               />
             </>
           )}
