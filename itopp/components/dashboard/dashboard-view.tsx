@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -26,8 +26,8 @@ export function DashboardView({ data }: { data: DashboardData | null }) {
           <CardTitle>You are not logged in</CardTitle>
         </CardHeader>
         <CardContent className="flex gap-2">
-          <Button render={<Link href="/login">Log in</Link>} />
-          <Button variant="outline" render={<Link href="/signup">Sign up</Link>} />
+          <Button nativeButton={false} render={<Link href="/login">Log in</Link>} />
+          <Button variant="outline" nativeButton={false} render={<Link href="/signup">Sign up</Link>} />
         </CardContent>
       </Card>
     );
@@ -84,10 +84,10 @@ export function DashboardView({ data }: { data: DashboardData | null }) {
               <Button
                 variant="outline"
                 className="justify-start"
-                render={<Link href="/student/profile">My student profile</Link>}
+                nativeButton={false} render={<Link href="/student/profile">My student profile</Link>}
               />
               <p className="text-xs text-[#6B7280]">
-                Postings + applications unlock here in Phase 3–4, after you are
+                Postings + applications unlock here in Phase 3â€“4, after you are
                 verified.
               </p>
             </>
@@ -97,7 +97,7 @@ export function DashboardView({ data }: { data: DashboardData | null }) {
               <Button
                 variant="outline"
                 className="justify-start"
-                render={<Link href="/company/profile">My company profile</Link>}
+                nativeButton={false} render={<Link href="/company/profile">My company profile</Link>}
               />
               <p className="text-xs text-[#6B7280]">
                 Posting openings unlocks here in Phase 3, after you are
@@ -109,7 +109,7 @@ export function DashboardView({ data }: { data: DashboardData | null }) {
             <Button
               variant="outline"
               className="justify-start"
-              render={<Link href="/admin/queue">Open verification queue</Link>}
+              nativeButton={false} render={<Link href="/admin/queue">Open verification queue</Link>}
             />
           )}
         </CardContent>
@@ -117,3 +117,4 @@ export function DashboardView({ data }: { data: DashboardData | null }) {
     </div>
   );
 }
+
