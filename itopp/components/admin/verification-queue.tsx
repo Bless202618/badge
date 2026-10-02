@@ -14,70 +14,80 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { StatusBadge } from "@/components/ui/status-badge";
-import { useStore } from "@/lib/mock-store";
+import { reviewCompanyAction, reviewStudentAction } from "@/lib/actions";
 
-export function VerificationQueue() {
-  const {
-    currentUser,
-    data,
-    reviewStudent,
-    reviewCompany,
-  } = useStore();
+export interface PendingItem {
+  userId: string;
+  title: string;
+  sub: string;
+  docs: string;
+}
+
+export interface DecidedItem {
+  key: string;
+  name: string;
+  kind: string;
+  status: "pending" | "verified" | "rejected" | "suspended";
+}
+
+export function VerificationQueue({
+  pendingStudents,
+  pendingCompanies,
+  decided,
+}: {
+  pendingStudents: PendingItem[];
+  pendingCompanies: PendingItem[];
+  decided: DecidedItem[];
+}) {
   const [rejectId, setRejectId] = useState<string | null>(null);
   const [rejectKind, setRejectKind] = useState<"student" | "company" | null>(
     null
   );
   const [reason, setReason] = useState("");
+  const [busy, setBusy] = useState(false);
 
-  if (!currentUser) {
-    return (
-      <Card>
-        <CardContent className="pt-6 text-sm">
-          Log in as the admin to review verifications.
-        </CardContent>
-      </Card>
-    );
-  }
-  if (currentUser.role !== "admin") {
-    return (
-      <Card>
-        <CardContent className="pt-6 text-sm">
-          Only the platform admin can review verifications. You are logged in
-          as a {currentUser.role}.
-        </CardContent>
-      </Card>
-    );
-  }
-
-  const pendingStudents = data.studentProfiles.filter(
-    (p) => p.verificationStatus === "pending"
-  );
-  const pendingCompanies = data.companyProfiles.filter(
-    (p) => p.verificationStatus === "pending"
-  );
-  const decided = [
-    ...data.studentProfiles
-      .filter((p) => p.verificationStatus !== "pending")
-      .map((p) => ({ kind: "Student" as const, name: p.name, p })),
-    ...data.companyProfiles
-      .filter((p) => p.verificationStatus !== "pending")
-      .map((p) => ({ kind: "Company" as const, name: p.companyName, p })),
-  ];
-
-  function approve(kind: "student" | "company", userId: string, name: string) {
-    if (kind === "student") reviewStudent(userId, "verified");
-    else reviewCompany(userId, "verified");
+  async function approve(
+    kind: "student" | "company",
+    userId: string,
+    name: string
+  ) {
+    setBusy(true);
+    const res =
+      kind === "student"
+        ? await reviewStudentAction({ userId, decision: "verified" })
+        : await reviewCompanyAction({ userId, decision: "verified" });
+    setBusy(false);
+    if (!res.ok) {
+      toast.error(res.error);
+      return;
+    }
     toast.success(`${name} verified.`);
   }
 
-  function confirmReject() {
+  async function confirmReject() {
     if (!rejectId || !rejectKind) return;
     if (reason.trim().length < 3) {
       toast.error("Write a short reason so they know what to fix.");
       return;
     }
-    if (rejectKind === "student") reviewStudent(rejectId, "rejected", reason.trim());
-    else reviewCompany(rejectId, "rejected", reason.trim());
+    setBusy(true);
+    const res =
+      rejectKind === "student"
+        ? await reviewStudentAction({
+            userId: rejectId,
+            decision: "rejected",
+            reason: reason.trim(),
+          })
+        : await reviewCompanyAction({
+            userId: rejectId,
+            decision: "rejected",
+            reason: reason.trim(),
+          });
+    setBusy(false);
+    if (!res.ok) {
+      toast.error(res.error);
+      return;
+    }
     toast.success("Rejection sent with reason.");
     setRejectId(null);
     setRejectKind(null);
@@ -97,13 +107,9 @@ export function VerificationQueue() {
             <p className="text-sm text-[#6B7280]">Nothing waiting. Good.</p>
           ) : (
             <Rows
-              items={pendingStudents.map((p) => ({
-                id: p.userId,
-                title: p.name,
-                sub: `${p.department} · ${p.level} · CGPA ${p.cgpa} · ${p.skills.join(", ")}`,
-                docs: `CV: ${p.cvName} · ID: ${p.idDocName}`,
-              }))}
+              items={pendingStudents}
               kind="student"
+              busy={busy}
               onApprove={approve}
               onAskReject={(id) => {
                 setRejectId(id);
@@ -126,13 +132,9 @@ export function VerificationQueue() {
             <p className="text-sm text-[#6B7280]">Nothing waiting. Good.</p>
           ) : (
             <Rows
-              items={pendingCompanies.map((p) => ({
-                id: p.userId,
-                title: p.companyName,
-                sub: `CAC ${p.cacNumber} · ${p.contactName} · ${p.phone} · ${p.website}`,
-                docs: `Doc: ${p.docName}`,
-              }))}
+              items={pendingCompanies}
               kind="company"
+              busy={busy}
               onApprove={approve}
               onAskReject={(id) => {
                 setRejectId(id);
@@ -155,7 +157,11 @@ export function VerificationQueue() {
               value={reason}
               onChange={(e) => setReason(e.target.value)}
             />
-            <Button variant="destructive" onClick={confirmReject}>
+            <Button
+              variant="destructive"
+              onClick={confirmReject}
+              disabled={busy}
+            >
               Send rejection
             </Button>
             <Button
@@ -187,11 +193,11 @@ export function VerificationQueue() {
               </TableHeader>
               <TableBody>
                 {decided.map((d) => (
-                  <TableRow key={`${d.kind}-${d.name}`}>
+                  <TableRow key={d.key}>
                     <TableCell className="font-medium">{d.name}</TableCell>
                     <TableCell>{d.kind}</TableCell>
                     <TableCell>
-                      <StatusBadge status={d.p.verificationStatus} />
+                      <StatusBadge status={d.status} />
                     </TableCell>
                   </TableRow>
                 ))}
@@ -207,26 +213,41 @@ export function VerificationQueue() {
 function Rows({
   items,
   kind,
+  busy,
   onApprove,
   onAskReject,
 }: {
-  items: { id: string; title: string; sub: string; docs: string }[];
+  items: PendingItem[];
   kind: "student" | "company";
-  onApprove: (kind: "student" | "company", userId: string, name: string) => void;
+  busy: boolean;
+  onApprove: (
+    kind: "student" | "company",
+    userId: string,
+    name: string
+  ) => void;
   onAskReject: (id: string) => void;
 }) {
   return (
     <div className="space-y-3">
       {items.map((it) => (
-        <div key={it.id} className="rounded-lg border p-3">
+        <div key={it.userId} className="rounded-lg border p-3">
           <b>{it.title}</b>
           <p className="text-sm text-[#6B7280]">{it.sub}</p>
           <p className="text-xs text-[#6B7280]">{it.docs}</p>
           <div className="mt-2 flex gap-2">
-            <Button size="sm" onClick={() => onApprove(kind, it.id, it.title)}>
+            <Button
+              size="sm"
+              disabled={busy}
+              onClick={() => onApprove(kind, it.userId, it.title)}
+            >
               Approve
             </Button>
-            <Button size="sm" variant="outline" onClick={() => onAskReject(it.id)}>
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={busy}
+              onClick={() => onAskReject(it.userId)}
+            >
               Reject with reason
             </Button>
           </div>

@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
-import { StoreProvider } from "@/lib/mock-store";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -28,28 +27,26 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-[#F9FAFB] text-[#111827]">
-        <StoreProvider>
-          <header className="border-b bg-white">
-            <nav className="mx-auto flex max-w-4xl items-center justify-between px-4 py-3 text-sm font-semibold">
-              <Link href="/" className="text-base font-extrabold">
-                ITopp
+        <header className="border-b bg-white">
+          <nav className="mx-auto flex max-w-4xl items-center justify-between px-4 py-3 text-sm font-semibold">
+            <Link href="/" className="text-base font-extrabold">
+              ITopp
+            </Link>
+            <div className="flex items-center gap-4">
+              <Link href="/dashboard" className="hover:text-[#0B5FFF]">
+                Dashboard
               </Link>
-              <div className="flex items-center gap-4">
-                <Link href="/dashboard" className="hover:text-[#0B5FFF]">
-                  Dashboard
-                </Link>
-                <Link href="/design" className="hover:text-[#0B5FFF]">
-                  Design
-                </Link>
-                <Link href="/login" className="hover:text-[#0B5FFF]">
-                  Log in
-                </Link>
-              </div>
-            </nav>
-          </header>
-          <div className="flex-1">{children}</div>
-          <Toaster />
-        </StoreProvider>
+              <Link href="/design" className="hover:text-[#0B5FFF]">
+                Design
+              </Link>
+              <Link href="/login" className="hover:text-[#0B5FFF]">
+                Log in
+              </Link>
+            </div>
+          </nav>
+        </header>
+        <div className="flex-1">{children}</div>
+        <Toaster />
       </body>
     </html>
   );

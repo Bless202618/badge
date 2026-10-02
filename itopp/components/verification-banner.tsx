@@ -1,10 +1,8 @@
 import Link from "next/link";
-import type { VerificationState } from "@/lib/mock-store";
 
-const copy: Record<
-  VerificationState,
-  { title: string; body: string; tone: string }
-> = {
+export type BannerStatus = "pending" | "verified" | "rejected";
+
+const copy: Record<BannerStatus, { title: string; body: string; tone: string }> = {
   pending: {
     title: "Under review",
     body: "Your documents were received and are waiting for approval. You cannot post or apply until you are verified.",
@@ -28,7 +26,7 @@ export function VerificationBanner({
   profileHref,
   profileLabel,
 }: {
-  status: VerificationState;
+  status: BannerStatus;
   reason?: string;
   profileHref: string;
   profileLabel: string;

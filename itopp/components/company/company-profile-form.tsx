@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useStore } from "@/lib/mock-store";
+import { saveCompanyProfileAction } from "@/lib/actions";
 
 const schema = z.object({
   companyName: z.string().min(2, "Enter the company name"),
@@ -21,11 +21,23 @@ const schema = z.object({
 
 type Values = z.infer<typeof schema>;
 
-export function CompanyProfileForm() {
-  const { currentUser, currentCompanyProfile, saveCompanyProfile } = useStore();
+export interface CompanyProfileInitial {
+  companyName: string;
+  cacNumber: string;
+  contactName: string;
+  phone: string;
+  website: string;
+  docName: string | null;
+}
+
+export function CompanyProfileForm({
+  initial,
+}: {
+  initial: CompanyProfileInitial | null;
+}) {
   const router = useRouter();
-  const existing = currentCompanyProfile;
   const [doc, setDoc] = useState<File | null>(null);
+  const [busy, setBusy] = useState(false);
 
   const {
     register,
@@ -34,42 +46,22 @@ export function CompanyProfileForm() {
   } = useForm<Values>({
     resolver: zodResolver(schema),
     defaultValues: {
-      companyName: existing?.companyName ?? "",
-      cacNumber: existing?.cacNumber ?? "",
-      contactName: existing?.contactName ?? "",
-      phone: existing?.phone ?? "",
-      website: existing?.website ?? "",
+      companyName: initial?.companyName ?? "",
+      cacNumber: initial?.cacNumber ?? "",
+      contactName: initial?.contactName ?? "",
+      phone: initial?.phone ?? "",
+      website: initial?.website ?? "",
     },
   });
 
-  if (!currentUser) {
-    return (
-      <Card>
-        <CardContent className="pt-6 text-sm">
-          Please log in first, then complete your company profile.
-        </CardContent>
-      </Card>
-    );
-  }
-  if (currentUser.role !== "company") {
-    return (
-      <Card>
-        <CardContent className="pt-6 text-sm">
-          This page is for company accounts. Student accounts use the student
-          profile page.
-        </CardContent>
-      </Card>
-    );
-  }
-
-  function onSubmit(v: Values) {
-    const docName = doc?.name ?? existing?.docName ?? "";
+  async function onSubmit(v: Values) {
+    const docName = doc?.name ?? initial?.docName ?? "";
     if (!docName) {
       toast.error("Upload a CAC document or proof of legitimacy.");
       return;
     }
-    saveCompanyProfile({
-      userId: currentUser!.id,
+    setBusy(true);
+    const res = await saveCompanyProfileAction({
       companyName: v.companyName.trim(),
       cacNumber: v.cacNumber.trim(),
       contactName: v.contactName.trim(),
@@ -77,6 +69,11 @@ export function CompanyProfileForm() {
       website: v.website.trim(),
       docName,
     });
+    setBusy(false);
+    if (!res.ok) {
+      toast.error(res.error);
+      return;
+    }
     toast.success("Profile submitted. Waiting for verification.");
     router.push("/dashboard");
   }
@@ -120,16 +117,20 @@ export function CompanyProfileForm() {
           <div>
             <label className="mb-1 block text-sm font-semibold">
               CAC certificate or legitimacy proof{" "}
-              {existing?.docName && `(current: ${existing.docName})`}
+              {initial?.docName && `(current: ${initial.docName})`}
             </label>
             <Input
               type="file"
               accept=".pdf,.jpg,.png"
               onChange={(e) => setDoc(e.target.files?.[0] ?? null)}
             />
+            <p className="mt-1 text-xs text-[#6B7280]">
+              Demo note: only the file name is stored for now. Real file
+              uploads arrive with cloud storage keys.
+            </p>
           </div>
-          <Button type="submit" className="w-full">
-            Submit for verification
+          <Button type="submit" className="w-full" disabled={busy}>
+            {busy ? "Submitting…" : "Submit for verification"}
           </Button>
         </form>
       </CardContent>

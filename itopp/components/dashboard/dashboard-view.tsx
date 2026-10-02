@@ -1,21 +1,25 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { VerificationBanner } from "@/components/verification-banner";
-import { useStore } from "@/lib/mock-store";
+import { logoutAction } from "@/lib/actions";
 
-export function DashboardView() {
-  const {
-    currentUser,
-    currentStudentProfile,
-    currentCompanyProfile,
-    logout,
-  } = useStore();
+export interface DashboardData {
+  user: { name: string; email: string; role: string; status: "pending" | "verified" | "suspended" };
+  studentProfile: { reviewReason: string | null } | null;
+  companyProfile: { reviewReason: string | null } | null;
+}
 
-  if (!currentUser) {
+export function DashboardView({ data }: { data: DashboardData | null }) {
+  const router = useRouter();
+  const [busy, setBusy] = useState(false);
+
+  if (!data) {
     return (
       <Card>
         <CardHeader>
@@ -23,33 +27,37 @@ export function DashboardView() {
         </CardHeader>
         <CardContent className="flex gap-2">
           <Button render={<Link href="/login">Log in</Link>} />
-          <Button
-            variant="outline"
-            render={<Link href="/signup">Sign up</Link>}
-          />
+          <Button variant="outline" render={<Link href="/signup">Sign up</Link>} />
         </CardContent>
       </Card>
     );
   }
 
-  const isStudent = currentUser.role === "student";
-  const isCompany = currentUser.role === "company";
-  const isAdmin = currentUser.role === "admin";
-  const profile = isStudent ? currentStudentProfile : currentCompanyProfile;
+  const { user } = data;
+  const isStudent = user.role === "student";
+  const isCompany = user.role === "company";
+  const isAdmin = user.role === "admin";
+  const profile = isStudent ? data.studentProfile : data.companyProfile;
   const profileHref = isStudent ? "/student/profile" : "/company/profile";
+
+  async function logout() {
+    setBusy(true);
+    await logoutAction();
+    router.push("/");
+  }
 
   return (
     <div className="space-y-4">
       <Card>
         <CardHeader>
-          <CardTitle>Welcome, {currentUser.name}</CardTitle>
+          <CardTitle>Welcome, {user.name}</CardTitle>
         </CardHeader>
         <CardContent className="flex flex-wrap items-center gap-2 text-sm">
-          <span className="font-semibold capitalize">{currentUser.role}</span>
-          <StatusBadge status={currentUser.status} />
-          <span className="text-[#6B7280]">{currentUser.email}</span>
+          <span className="font-semibold capitalize">{user.role}</span>
+          <StatusBadge status={user.status} />
+          <span className="text-[#6B7280]">{user.email}</span>
           <span className="flex-1" />
-          <Button variant="outline" size="sm" onClick={logout}>
+          <Button variant="outline" size="sm" onClick={logout} disabled={busy}>
             Log out
           </Button>
         </CardContent>
@@ -57,8 +65,8 @@ export function DashboardView() {
 
       {!isAdmin && (
         <VerificationBanner
-          status={currentUser.status}
-          reason={profile?.reviewReason}
+          status={user.status === "suspended" ? "pending" : user.status}
+          reason={profile?.reviewReason ?? undefined}
           profileHref={profileHref}
           profileLabel={
             profile ? "Update and resubmit profile" : "Complete your profile"

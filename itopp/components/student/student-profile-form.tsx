@@ -16,7 +16,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { DEPARTMENTS, LEVELS, useStore } from "@/lib/mock-store";
+import { saveStudentProfileAction } from "@/lib/actions";
+import { DEPARTMENTS, LEVELS } from "@/lib/options";
 
 const schema = z.object({
   name: z.string().min(2, "Enter your full name"),
@@ -25,7 +26,11 @@ const schema = z.object({
   cgpa: z
     .string()
     .refine(
-      (v) => v.trim() !== "" && !isNaN(Number(v)) && Number(v) >= 0 && Number(v) <= 5,
+      (v) =>
+        v.trim() !== "" &&
+        !isNaN(Number(v)) &&
+        Number(v) >= 0 &&
+        Number(v) <= 5,
       "CGPA must be a number between 0 and 5"
     ),
   skills: z.string().min(2, "List at least one skill, e.g. React, Git"),
@@ -33,12 +38,27 @@ const schema = z.object({
 
 type Values = z.infer<typeof schema>;
 
-export function StudentProfileForm() {
-  const { currentUser, currentStudentProfile, saveStudentProfile } = useStore();
+export interface StudentProfileInitial {
+  name: string;
+  department: string;
+  level: string;
+  cgpa: number;
+  skills: string[];
+  cvName: string | null;
+  idDocName: string | null;
+}
+
+export function StudentProfileForm({
+  userName,
+  initial,
+}: {
+  userName: string;
+  initial: StudentProfileInitial | null;
+}) {
   const router = useRouter();
-  const existing = currentStudentProfile;
   const [cv, setCv] = useState<File | null>(null);
   const [idDoc, setIdDoc] = useState<File | null>(null);
+  const [busy, setBusy] = useState(false);
 
   const {
     register,
@@ -49,37 +69,17 @@ export function StudentProfileForm() {
   } = useForm<Values>({
     resolver: zodResolver(schema),
     defaultValues: {
-      name: existing?.name ?? currentUser?.name ?? "",
-      department: existing?.department ?? "",
-      level: existing?.level ?? "",
-      cgpa: existing ? String(existing.cgpa) : "",
-      skills: existing?.skills.join(", ") ?? "",
+      name: initial?.name ?? userName,
+      department: initial?.department ?? "",
+      level: initial?.level ?? "",
+      cgpa: initial ? String(initial.cgpa) : "",
+      skills: initial?.skills.join(", ") ?? "",
     },
   });
 
-  if (!currentUser) {
-    return (
-      <Card>
-        <CardContent className="pt-6 text-sm">
-          Please log in first, then complete your student profile.
-        </CardContent>
-      </Card>
-    );
-  }
-  if (currentUser.role !== "student") {
-    return (
-      <Card>
-        <CardContent className="pt-6 text-sm">
-          This page is for student accounts. Company accounts use the company
-          profile page.
-        </CardContent>
-      </Card>
-    );
-  }
-
-  function onSubmit(v: Values) {
-    const cvName = cv?.name ?? existing?.cvName ?? "";
-    const idDocName = idDoc?.name ?? existing?.idDocName ?? "";
+  async function onSubmit(v: Values) {
+    const cvName = cv?.name ?? initial?.cvName ?? "";
+    const idDocName = idDoc?.name ?? initial?.idDocName ?? "";
     if (!cvName) {
       toast.error("Upload your CV/resume.");
       return;
@@ -88,8 +88,8 @@ export function StudentProfileForm() {
       toast.error("Upload your school ID or admission letter.");
       return;
     }
-    saveStudentProfile({
-      userId: currentUser!.id,
+    setBusy(true);
+    const res = await saveStudentProfileAction({
       name: v.name.trim(),
       department: v.department,
       level: v.level,
@@ -98,6 +98,11 @@ export function StudentProfileForm() {
       cvName,
       idDocName,
     });
+    setBusy(false);
+    if (!res.ok) {
+      toast.error(res.error);
+      return;
+    }
     toast.success("Profile submitted. Waiting for verification.");
     router.push("/dashboard");
   }
@@ -156,7 +161,14 @@ export function StudentProfileForm() {
           </div>
           <div>
             <label className="mb-1 block text-sm font-semibold">CGPA (0–5)</label>
-            <Input type="number" step="0.01" min="0" max="5" placeholder="e.g. 4.2" {...register("cgpa")} />
+            <Input
+              type="number"
+              step="0.01"
+              min="0"
+              max="5"
+              placeholder="e.g. 4.2"
+              {...register("cgpa")}
+            />
             {errors.cgpa && <Err msg={errors.cgpa.message} />}
           </div>
           <div>
@@ -168,7 +180,7 @@ export function StudentProfileForm() {
           </div>
           <div>
             <label className="mb-1 block text-sm font-semibold">
-              CV / Resume {existing?.cvName && `(current: ${existing.cvName})`}
+              CV / Resume {initial?.cvName && `(current: ${initial.cvName})`}
             </label>
             <Input
               type="file"
@@ -179,16 +191,20 @@ export function StudentProfileForm() {
           <div>
             <label className="mb-1 block text-sm font-semibold">
               School ID or admission letter{" "}
-              {existing?.idDocName && `(current: ${existing.idDocName})`}
+              {initial?.idDocName && `(current: ${initial.idDocName})`}
             </label>
             <Input
               type="file"
               accept=".pdf,.jpg,.png"
               onChange={(e) => setIdDoc(e.target.files?.[0] ?? null)}
             />
+            <p className="mt-1 text-xs text-[#6B7280]">
+              Demo note: only the file name is stored for now. Real file
+              uploads arrive with cloud storage keys.
+            </p>
           </div>
-          <Button type="submit" className="w-full">
-            Submit for verification
+          <Button type="submit" className="w-full" disabled={busy}>
+            {busy ? "Submitting…" : "Submit for verification"}
           </Button>
         </form>
       </CardContent>

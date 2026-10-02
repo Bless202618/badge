@@ -6,23 +6,20 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useStore } from "@/lib/mock-store";
-
-const DEMOS = [
-  { label: "Log in as Admin (you)", email: "admin@itopp.ng" },
-  { label: "Log in as Student (Adaeze)", email: "adaeze@student.edu" },
-  { label: "Log in as Company (TechCorp)", email: "hello@techcorp.ng" },
-];
+import { loginAction } from "@/lib/actions";
 
 export function LoginForm() {
-  const { login } = useStore();
   const router = useRouter();
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [busy, setBusy] = useState(false);
 
-  function doLogin(target: string) {
-    const id = login(target);
-    if (!id) {
-      toast.error("No account found for that email. Try a demo below.");
+  async function submit() {
+    setBusy(true);
+    const res = await loginAction({ email, password });
+    setBusy(false);
+    if (!res.ok) {
+      toast.error(res.error);
       return;
     }
     toast.success("Logged in.");
@@ -35,31 +32,29 @@ export function LoginForm() {
         <CardTitle>Log in</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="flex gap-2">
+        <div>
+          <label className="mb-1 block text-sm font-semibold">Email</label>
           <Input
             placeholder="you@example.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
-          <Button onClick={() => doLogin(email)}>Log in</Button>
         </div>
-        <div className="border-t pt-4">
-          <p className="mb-2 text-sm font-semibold text-[#6B7280]">
-            One-click demo accounts (no password needed in this demo):
-          </p>
-          <div className="flex flex-col gap-2">
-            {DEMOS.map((d) => (
-              <Button
-                key={d.email}
-                variant="outline"
-                className="justify-start"
-                onClick={() => doLogin(d.email)}
-              >
-                {d.label}
-              </Button>
-            ))}
-          </div>
+        <div>
+          <label className="mb-1 block text-sm font-semibold">Password</label>
+          <Input
+            type="password"
+            placeholder="••••••••"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") submit();
+            }}
+          />
         </div>
+        <Button className="w-full" onClick={submit} disabled={busy}>
+          {busy ? "Logging in…" : "Log in"}
+        </Button>
       </CardContent>
     </Card>
   );

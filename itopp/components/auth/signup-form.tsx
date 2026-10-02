@@ -13,28 +13,30 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useStore, type Role } from "@/lib/mock-store";
+import { signupAction } from "@/lib/actions";
 
 export function SignupForm() {
-  const { signup } = useStore();
   const router = useRouter();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [role, setRole] = useState<Role>("student");
+  const [password, setPassword] = useState("");
+  const [role, setRole] = useState<"student" | "company">("student");
+  const [busy, setBusy] = useState(false);
 
-  function submit() {
+  async function submit() {
     if (name.trim().length < 2) {
       toast.error("Enter your full name.");
       return;
     }
-    if (!email.includes("@")) {
-      toast.error("Enter a valid email address.");
+    if (password.length < 6) {
+      toast.error("Password needs at least 6 characters.");
       return;
     }
-    try {
-      signup(name, email, role);
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Signup failed.");
+    setBusy(true);
+    const res = await signupAction({ name, email, password, role });
+    setBusy(false);
+    if (!res.ok) {
+      toast.error(res.error);
       return;
     }
     toast.success("Account created. Complete your profile for verification.");
@@ -64,10 +66,22 @@ export function SignupForm() {
           />
         </div>
         <div>
+          <label className="mb-1 block text-sm font-semibold">Password</label>
+          <Input
+            type="password"
+            placeholder="At least 6 characters"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+        </div>
+        <div>
           <label className="mb-1 block text-sm font-semibold">
             I am joining as
           </label>
-          <Select value={role} onValueChange={(v) => setRole(v as Role)}>
+          <Select
+            value={role}
+            onValueChange={(v) => setRole(v as "student" | "company")}
+          >
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
@@ -77,13 +91,9 @@ export function SignupForm() {
             </SelectContent>
           </Select>
         </div>
-        <Button className="w-full" onClick={submit}>
-          Sign up
+        <Button className="w-full" onClick={submit} disabled={busy}>
+          {busy ? "Creating…" : "Sign up"}
         </Button>
-        <p className="text-xs text-[#6B7280]">
-          Demo only: no password is stored. Real login security arrives with
-          Supabase in the next step.
-        </p>
       </CardContent>
     </Card>
   );
