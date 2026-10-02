@@ -19,10 +19,10 @@ export default function Home() {
         Shortlisted → Accepted.
       </p>
       <div className="flex flex-wrap justify-center gap-3">
-        <Button render={<Link href="/design">View design system</Link>} />
+        <Button render={<Link href="/signup">Get started — it&apos;s free</Link>} />
         <Button
           variant="outline"
-          render={<Link href="/design">Browse openings</Link>}
+          render={<Link href="/login">Log in</Link>}
         />
       </div>
       <div className="grid w-full gap-3 text-left sm:grid-cols-3">
