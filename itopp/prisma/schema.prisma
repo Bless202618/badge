@@ -1,0 +1,190 @@
+// ITopp database blueprint — real Postgres (works with Supabase Postgres,
+// Neon, or local PostgreSQL). Phases 1–6 entities. Out of scope for v1:
+// no university tables, no stipend columns, no messaging tables.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  student
+  company
+  admin
+}
+
+enum VerificationState {
+  pending
+  verified
+  rejected
+}
+
+enum UserStatus {
+  pending
+  verified
+  suspended
+}
+
+enum PostingStatus {
+  draft
+  active
+  closed
+  suspended
+}
+
+enum ApplicationStatus {
+  applied
+  shortlisted
+  accepted
+  rejected
+  withdrawn
+}
+
+enum ReportStatus {
+  open
+  investigating
+  resolved
+  dismissed
+}
+
+model User {
+  id           String      @id @default(cuid())
+  name         String
+  email        String      @unique
+  passwordHash String?
+  role         Role
+  status       UserStatus  @default(pending)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  studentProfile StudentProfile?
+  companyProfile CompanyProfile?
+  applications   Application[]   @relation("StudentApplications")
+  sentRatings    Rating[]        @relation("RatingsGiven")
+  receivedRatings Rating[]       @relation("RatingsReceived")
+  reportsFiled   Report[]        @relation("ReportsFiled")
+  notifications  Notification[]
+}
+
+model StudentProfile {
+  id                 String            @id @default(cuid())
+  userId             String            @unique
+  user               User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name               String
+  department         String
+  level              String
+  cgpa               Float
+  skills             String[]
+  cvName             String?
+  cvUrl              String?
+  idDocName          String?
+  verificationStatus VerificationState @default(pending)
+  reviewReason       String?
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+}
+
+model CompanyProfile {
+  id                 String            @id @default(cuid())
+  userId             String            @unique
+  user               User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  companyName        String
+  cacNumber          String
+  contactName        String
+  phone              String
+  website            String
+  docName            String?
+  verificationStatus VerificationState @default(pending)
+  reviewReason       String?
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+
+  postings Posting[]
+}
+
+model Posting {
+  id               String        @id @default(cuid())
+  companyId        String
+  company          CompanyProfile @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  title            String
+  departments      String[]
+  location         String
+  durationMonths   Int
+  skillsRequired   String[]
+  customQuestions  Json          @default("[]")
+  isQuickPost      Boolean       @default(false)
+  status           PostingStatus @default(active)
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  applications Application[]
+}
+
+// NOTE: no stipend/compensation column — out of scope for v1 by PRD.
+model Application {
+  id        String            @id @default(cuid())
+  postingId String
+  posting   Posting           @relation(fields: [postingId], references: [id], onDelete: Cascade)
+  studentId String
+  student   User              @relation("StudentApplications", fields: [studentId], references: [id], onDelete: Cascade)
+  answers   Json              @default("[]")
+  status    ApplicationStatus @default(applied)
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+
+  @@index([postingId, status])
+  @@index([studentId, status])
+}
+
+model Rating {
+  id          String   @id @default(cuid())
+  fromId      String
+  from        User     @relation("RatingsGiven", fields: [fromId], references: [id], onDelete: Cascade)
+  toId        String
+  to          User     @relation("RatingsReceived", fields: [toId], references: [id], onDelete: Cascade)
+  applicationId String
+  score       Int
+  comment     String?
+  createdAt   DateTime @default(now())
+
+  @@unique([fromId, toId, applicationId])
+}
+
+model Report {
+  id         String       @id @default(cuid())
+  reporterId String
+  reporter   User         @relation("ReportsFiled", fields: [reporterId], references: [id], onDelete: Cascade)
+  companyId  String
+  reason     String
+  details    String?
+  status     ReportStatus @default(open)
+  createdAt  DateTime     @default(now())
+  resolvedAt DateTime?
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String
+  title     String
+  body      String?
+  readAt    DateTime?
+  createdAt DateTime @default(now())
+
+  @@index([userId, readAt])
+}
+
+model VerificationReview {
+  id        String            @id @default(cuid())
+  kind      String
+  profileId String
+  reviewer  String
+  decision  VerificationState
+  reason    String?
+  decidedAt DateTime          @default(now())
+}
