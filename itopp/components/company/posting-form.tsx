@@ -126,7 +126,7 @@ export function PostingForm({ initial }: { initial?: PostingInitial }) {
           <label className="mb-2 block text-sm font-semibold">
             Departments (pick at least one)
           </label>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex max-h-48 flex-wrap gap-2 overflow-y-auto rounded-md border p-2">
             {DEPARTMENTS.map((d) => (
               <button
                 key={d}
