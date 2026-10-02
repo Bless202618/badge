@@ -99,18 +99,29 @@ export function DashboardView({ data }: { data: DashboardData | null }) {
                 className="justify-start"
                 nativeButton={false} render={<Link href="/company/profile">My company profile</Link>}
               />
+              <Button
+                variant="outline"
+                className="justify-start"
+                nativeButton={false} render={<Link href="/company/postings">My openings</Link>}
+              />
               <p className="text-xs text-[#6B7280]">
-                Posting openings unlocks here in Phase 3, after you are
-                verified.
+                Applications to your openings arrive in Phase 4–5.
               </p>
             </>
           )}
           {isAdmin && (
-            <Button
-              variant="outline"
-              className="justify-start"
-              nativeButton={false} render={<Link href="/admin/queue">Open verification queue</Link>}
-            />
+            <>
+              <Button
+                variant="outline"
+                className="justify-start"
+                nativeButton={false} render={<Link href="/admin/queue">Open verification queue</Link>}
+              />
+              <Button
+                variant="outline"
+                className="justify-start"
+                nativeButton={false} render={<Link href="/admin/postings">All openings</Link>}
+              />
+            </>
           )}
         </CardContent>
       </Card>

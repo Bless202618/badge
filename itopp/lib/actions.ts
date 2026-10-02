@@ -256,3 +256,113 @@ export async function reviewCompanyAction(input: {
   revalidatePath("/dashboard");
   return { ok: true };
 }
+
+// ---------------------------------------------------------------------------
+// Postings (Phase 3) — verified companies only. No stipend field by PRD.
+// ---------------------------------------------------------------------------
+const postingSchema = z.object({
+  title: z.string().trim().min(4).max(120),
+  departments: z.array(z.string().trim().min(1)).min(1).max(10),
+  location: z.string().trim().min(2).max(100),
+  durationMonths: z.number().int().min(1).max(12),
+  skillsRequired: z.array(z.string().trim().min(1).max(40)).max(30),
+  customQuestions: z.array(z.string().trim().min(1).max(300)).max(10),
+  isQuickPost: z.boolean(),
+});
+
+type PostingInput = z.infer<typeof postingSchema>;
+
+async function requireVerifiedCompany() {
+  const me = await getSessionUser();
+  if (!me || me.role !== "company") return null;
+  const profile = await db.companyProfile.findUnique({
+    where: { userId: me.id },
+  });
+  if (!profile || profile.verificationStatus !== "verified") return null;
+  return { me, profile };
+}
+
+export async function createPostingAction(
+  input: PostingInput
+): Promise<ActionResult> {
+  const gate = await requireVerifiedCompany();
+  if (!gate) return { ok: false, error: "Verified companies only." };
+  const parsed = postingSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: "Check the form and try again." };
+
+  await db.posting.create({
+    data: {
+      companyId: gate.profile.id,
+      title: parsed.data.title,
+      departments: parsed.data.departments,
+      location: parsed.data.location,
+      durationMonths: parsed.data.durationMonths,
+      skillsRequired: parsed.data.skillsRequired,
+      customQuestions: parsed.data.customQuestions,
+      isQuickPost: parsed.data.isQuickPost,
+      status: "active",
+    },
+  });
+  revalidatePath("/company/postings");
+  return { ok: true };
+}
+
+export async function updatePostingAction(
+  input: PostingInput & { id: string }
+): Promise<ActionResult> {
+  const gate = await requireVerifiedCompany();
+  if (!gate) return { ok: false, error: "Verified companies only." };
+  const parsed = postingSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: "Check the form and try again." };
+
+  const posting = await db.posting.findUnique({ where: { id: input.id } });
+  if (!posting || posting.companyId !== gate.profile.id) {
+    return { ok: false, error: "Posting not found." };
+  }
+  await db.posting.update({
+    where: { id: input.id },
+    data: {
+      title: parsed.data.title,
+      departments: parsed.data.departments,
+      location: parsed.data.location,
+      durationMonths: parsed.data.durationMonths,
+      skillsRequired: parsed.data.skillsRequired,
+      customQuestions: parsed.data.customQuestions,
+    },
+  });
+  revalidatePath("/company/postings");
+  return { ok: true };
+}
+
+export async function setPostingStatusAction(input: {
+  id: string;
+  status: "active" | "closed" | "suspended";
+}): Promise<ActionResult> {
+  const me = await getSessionUser();
+  if (!me) return { ok: false, error: "Log in first." };
+  const parsed = z
+    .object({ id: z.string().min(1), status: z.enum(["active", "closed", "suspended"]) })
+    .safeParse(input);
+  if (!parsed.success) return { ok: false, error: "Invalid request." };
+
+  const posting = await db.posting.findUnique({
+    where: { id: parsed.data.id },
+    include: { company: true },
+  });
+  if (!posting) return { ok: false, error: "Posting not found." };
+
+  const isOwner = me.role === "company" && posting.company.userId === me.id;
+  const isAdmin = me.role === "admin";
+  if (!isOwner && !isAdmin) return { ok: false, error: "Not allowed." };
+  // Owners can only open/close their own; only you (admin) can suspend.
+  if (!isAdmin && parsed.data.status === "suspended") {
+    return { ok: false, error: "Only the admin can suspend." };
+  }
+  await db.posting.update({
+    where: { id: parsed.data.id },
+    data: { status: parsed.data.status },
+  });
+  revalidatePath("/company/postings");
+  revalidatePath("/admin/postings");
+  return { ok: true };
+}
