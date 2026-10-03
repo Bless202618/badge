@@ -1,5 +1,9 @@
 # ITopp
 
+[![Netlify Status](https://api.netlify.com/api/v1/badges/9b72830f-0360-48f6-af13-86172506cf6a/deploy-status)](https://app.netlify.com/projects/stirring-platypus-c55f83/deploys)
+
+Live: https://stirring-platypus-c55f83.netlify.app
+
 Bridge the gap between university walls and industry by making IT placement discovery verified, transparent, and accountable — for both students and companies.
 
 ## Problem
