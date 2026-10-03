@@ -1,1 +1,8 @@
+.env
+.env.*
+!.env.example
+node_modules/
+.next/
+itopp/node_modules/
+itopp/.next/
 .netlify/
