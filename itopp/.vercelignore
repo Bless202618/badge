@@ -1,0 +1,3 @@
+# Never upload local secrets to deploys — use `vercel env` instead.
+.env
+.env.local
