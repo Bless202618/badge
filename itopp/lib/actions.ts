@@ -48,6 +48,23 @@ export async function signupAction(input: {
     },
   });
   await createSession(user.id);
+
+  // Tell every admin (shows in your Notifications + nav counter).
+  const admins = await db.user.findMany({
+    where: { role: "admin" },
+    select: { id: true },
+  });
+  if (admins.length > 0) {
+    await db.notification.createMany({
+      data: admins.map((a) => ({
+        userId: a.id,
+        type: "new_signup",
+        title: `New ${role} signup: ${name}`,
+        body: `${email} is waiting in the verification queue.`,
+      })),
+    });
+  }
+
   revalidatePath("/dashboard");
   return { ok: true, role: user.role };
 }
