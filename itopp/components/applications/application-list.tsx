@@ -26,6 +26,14 @@ export function ApplicationList({
 }) {
   const [busy, setBusy] = useState<string | null>(null);
 
+  const bar: Record<ApplicationRow["status"], string> = {
+    applied: "border-l-[#0B5FFF]",
+    shortlisted: "border-l-[#16A34A]",
+    accepted: "border-l-[#16A34A]",
+    rejected: "border-l-[#DC2626]",
+    withdrawn: "border-l-gray-300",
+  };
+
   async function withdraw(id: string) {
     setBusy(id);
     const res = await withdrawAction({ applicationId: id });
@@ -47,7 +55,7 @@ export function ApplicationList({
   return (
     <div className="space-y-3">
       {applications.map((a) => (
-        <Card key={a.id}>
+        <Card key={a.id} className={`border-l-4 ${bar[a.status]}`}>
           <CardContent className="flex flex-wrap items-center gap-2 pt-4">
             <div className="min-w-48 flex-1">
               <b>{a.postingTitle}</b>

@@ -178,9 +178,18 @@ export default async function OpeningsPage({
 }
 
 function PostingCard({ p }: { p: FeedPosting }) {
+  const initials = p.companyName
+    .split(" ")
+    .map((w) => w[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
   return (
-    <Card>
-      <CardContent className="flex flex-wrap items-center gap-2 pt-4">
+    <Card className="transition-shadow hover:shadow-md">
+      <CardContent className="flex flex-wrap items-center gap-3 pt-4">
+        <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-[#0B5FFF]/10 text-sm font-extrabold text-[#0B5FFF]">
+          {initials}
+        </span>
         <div className="min-w-48 flex-1">
           <Link
             href={`/openings/${p.id}`}

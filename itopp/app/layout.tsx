@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist_Mono, Inter } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import { getSessionUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
 });
 
@@ -33,9 +33,9 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${inter.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-[#F9FAFB] text-[#111827]">
+      <body className="min-h-full flex flex-col bg-[#F8FAFF] text-[#0A1633]">
         <header className="border-b bg-white">
           <nav className="mx-auto flex max-w-4xl items-center justify-between px-4 py-3 text-sm font-semibold">
             <Link href="/" className="text-base font-extrabold">
@@ -63,6 +63,27 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
           </nav>
         </header>
         <div className="flex-1">{children}</div>
+        <footer className="bg-[#0A1633] text-white">
+          <div className="mx-auto flex max-w-4xl flex-col gap-3 px-4 py-8 text-sm sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-base font-extrabold">ITopp</p>
+              <p className="text-white/70">
+                Verified IT placements for 400-level students.
+              </p>
+            </div>
+            <div className="flex gap-4 font-semibold">
+              <Link href="/openings" className="hover:text-[#9DBCFF]">
+                Openings
+              </Link>
+              <Link href="/signup" className="hover:text-[#9DBCFF]">
+                Sign up
+              </Link>
+              <Link href="/login" className="hover:text-[#9DBCFF]">
+                Log in
+              </Link>
+            </div>
+          </div>
+        </footer>
         <Toaster />
       </body>
     </html>
