@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { getSessionUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { ApplicationList } from "@/components/applications/application-list";
+import { PageHeader } from "@/components/layout/page-header";
 
 export default async function ApplicationsPage() {
   const me = await getSessionUser();
@@ -27,12 +28,11 @@ export default async function ApplicationsPage() {
 
   return (
     <main className="mx-auto max-w-3xl space-y-4 px-4 py-10">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-extrabold">My applications</h1>
-        <span className="text-sm text-[#6B7280]">
-          {active} / 5 active slots used
-        </span>
-      </div>
+      <PageHeader
+        eyebrow="TRACKING"
+        title="My applications"
+        description={`${active} of 5 active slots used — withdrawing frees a slot.`}
+      />
       <ApplicationList
         applications={apps.map((a) => ({
           id: a.id,

@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { getSessionUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { PostingList } from "@/components/company/posting-list";
+import { PageHeader } from "@/components/layout/page-header";
 
 export default async function CompanyPostingsPage() {
   const me = await getSessionUser();
@@ -23,8 +24,12 @@ export default async function CompanyPostingsPage() {
 
   return (
     <main className="mx-auto max-w-3xl space-y-4 px-4 py-10">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-extrabold">My openings</h1>
+      <PageHeader
+        eyebrow="COMPANY · HIRING"
+        title="My openings"
+        description="Publish once — matched students find you. Close when the slot fills."
+      />
+      <div>
         <Button nativeButton={false} render={<Link href="/company/postings/new">+ New opening</Link>} />
       </div>
       {profile.verificationStatus !== "verified" && (

@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { StatusBadge } from "@/components/ui/status-badge";
+import { PageHeader } from "@/components/layout/page-header";
 import { getSessionUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { matchScore } from "@/lib/match";
@@ -90,7 +91,15 @@ export default async function OpeningsPage({
 
   return (
     <main className="mx-auto max-w-3xl space-y-6 px-4 py-10">
-      <h1 className="text-2xl font-extrabold">Openings</h1>
+      <PageHeader
+        eyebrow="DISCOVERY"
+        title="Openings"
+        description={
+          profile
+            ? "Ranked for you first — every card shows why it matches."
+            : "Verified openings from verified companies."
+        }
+      />
 
       <form
         method="GET"

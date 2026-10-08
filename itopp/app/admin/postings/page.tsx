@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { getSessionUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { AdminPostingList } from "@/components/admin/admin-posting-list";
+import { PageHeader } from "@/components/layout/page-header";
 
 export default async function AdminPostingsPage() {
   const me = await getSessionUser();
@@ -18,11 +19,11 @@ export default async function AdminPostingsPage() {
 
   return (
     <main className="mx-auto max-w-3xl space-y-4 px-4 py-10">
-      <h1 className="text-2xl font-extrabold">All openings</h1>
-      <p className="text-sm text-[#6B7280]">
-        Suspend scammy or rule-breaking openings. Suspended openings vanish
-        from student feeds instantly.
-      </p>
+      <PageHeader
+        eyebrow="ADMIN · SAFETY"
+        title="All openings"
+        description="Suspend scammy or rule-breaking openings. Suspended openings vanish from student feeds instantly."
+      />
       <AdminPostingList
         postings={postings.map((p) => ({
           id: p.id,

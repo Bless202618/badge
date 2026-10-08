@@ -7,6 +7,7 @@ import { db } from "@/lib/db";
 import { matchScore } from "@/lib/match";
 import { ApplyForm } from "@/components/openings/apply-form";
 import { ReportDialog } from "@/components/reports/report-dialog";
+import { PageHeader } from "@/components/layout/page-header";
 
 export default async function OpeningDetailPage({
   params,
@@ -67,7 +68,8 @@ export default async function OpeningDetailPage({
 
   return (
     <main className="mx-auto max-w-2xl space-y-4 px-4 py-10">
-      <Card>
+      <PageHeader eyebrow="OPENING" title={posting.title} />
+      <Card className="border-t-4 border-t-[#0B5FFF]">
         <CardHeader>
           <div className="flex items-center justify-between gap-2">
             <CardTitle className="text-xl">{posting.title}</CardTitle>

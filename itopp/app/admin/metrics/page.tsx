@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PageHeader } from "@/components/layout/page-header";
 import { getSessionUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 
@@ -53,11 +54,11 @@ export default async function AdminMetricsPage() {
 
   return (
     <main className="mx-auto max-w-3xl space-y-4 px-4 py-10">
-      <h1 className="text-2xl font-extrabold">Trust metrics</h1>
-      <p className="text-sm text-[#6B7280]">
-        The 5 PRD success metrics + report health. Pilot target: 15–20
-        companies, one student cohort.
-      </p>
+      <PageHeader
+        eyebrow="ADMIN · PILOT HEALTH"
+        title="Trust metrics"
+        description="The 5 PRD success metrics + report health. Pilot target: 15–20 companies, one student cohort."
+      />
       <div className="grid gap-3 sm:grid-cols-2">
         {cards.map(([label, value]) => (
           <Card key={label}>
