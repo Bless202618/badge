@@ -1,7 +1,9 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import Link from "next/link";
 import { Geist_Mono, Inter } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
+import { RegisterSW } from "@/components/pwa/register-sw";
+import { InstallButton } from "@/components/pwa/install-button";
 import { getSessionUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import "./globals.css";
@@ -20,6 +22,16 @@ export const metadata: Metadata = {
   title: "ITopp — Verified IT Placements",
   description:
     "Verified companies meet verified 400-level students. Matched discovery, structured applications, clear status tracking.",
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    title: "ITopp",
+    statusBarStyle: "black-translucent",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#0A1633",
 };
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {
@@ -45,6 +57,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
               <Link href="/openings" className="hover:text-[#0B5FFF]">
                 Openings
               </Link>
+              <InstallButton />
               {me ? (
                 <>
                   <Link href="/notifications" className="hover:text-[#0B5FFF]">
@@ -63,6 +76,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
           </nav>
         </header>
         <div className="flex-1">{children}</div>
+        <RegisterSW />
         <footer className="bg-[#0A1633] text-white">
           <div className="mx-auto flex max-w-4xl flex-col gap-3 px-4 py-8 text-sm sm:flex-row sm:items-center sm:justify-between">
             <div>

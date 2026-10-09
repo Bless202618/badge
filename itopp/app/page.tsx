@@ -7,8 +7,10 @@ import {
   Building2,
   GraduationCap,
   ClipboardCheck,
+  Smartphone,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { InstallButton } from "@/components/pwa/install-button";
 import { db } from "@/lib/db";
 
 export default async function Home() {
@@ -145,6 +147,24 @@ export default async function Home() {
               nativeButton={false}
               render={<Link href="/signup">Join the pilot — free</Link>}
             />
+          </div>
+        </div>
+      </section>
+
+      {/* Install */}
+      <section className="mx-auto max-w-4xl px-4 py-14">
+        <div className="rounded-2xl bg-[#0A1633] p-8 text-center text-white sm:p-10">
+          <Smartphone className="mx-auto mb-3 size-8 text-[#9DBCFF]" />
+          <h2 className="text-2xl font-extrabold tracking-tight">
+            Take ITopp anywhere
+          </h2>
+          <p className="mx-auto mt-2 max-w-md text-sm text-white/70">
+            Install ITopp on your phone — full-screen icon, works even with
+            shaky campus internet. Android: one tap. iPhone: Share → Add to
+            Home Screen.
+          </p>
+          <div className="mt-5 flex justify-center">
+            <InstallButton large />
           </div>
         </div>
       </section>
