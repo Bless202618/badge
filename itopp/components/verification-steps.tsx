@@ -15,7 +15,7 @@ export function VerificationSteps({ current }: { current: number }) {
               className={cn(
                 "flex size-7 shrink-0 items-center justify-center rounded-full text-xs font-extrabold",
                 done && "bg-[#16A34A] text-white",
-                active && "bg-[#0B5FFF] text-white",
+                active && "bg-[#0C6B3C] text-white",
                 !done && !active && "bg-gray-200 text-[#475569]"
               )}
             >
@@ -24,7 +24,7 @@ export function VerificationSteps({ current }: { current: number }) {
             <span
               className={cn(
                 "hidden text-xs font-bold sm:block",
-                active ? "text-[#0B5FFF]" : "text-[#475569]"
+                active ? "text-[#0C6B3C]" : "text-[#475569]"
               )}
             >
               {label}

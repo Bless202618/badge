@@ -51,9 +51,11 @@ export interface StudentProfileInitial {
 export function StudentProfileForm({
   userName,
   initial,
+  identity,
 }: {
   userName: string;
   initial: StudentProfileInitial | null;
+  identity?: { department: string; level: string; status: string };
 }) {
   const router = useRouter();
   const [cv, setCv] = useState<File | null>(null);
@@ -108,7 +110,31 @@ export function StudentProfileForm({
   }
 
   return (
-    <Card>
+    <>
+      {identity && (
+        <div className="mb-4 rounded-2xl bg-[#0A3B22] p-5 text-white">
+          <div className="flex items-center gap-3">
+            <span className="flex size-12 items-center justify-center rounded-full bg-white/15 text-base font-extrabold">
+              {userName
+                .split(" ")
+                .map((w) => w[0])
+                .slice(0, 2)
+                .join("")
+                .toUpperCase()}
+            </span>
+            <div>
+              <p className="text-lg font-extrabold leading-tight">{userName}</p>
+              <p className="text-sm text-white/70">
+                {identity.department} · {identity.level}
+              </p>
+            </div>
+            <span className="ml-auto shrink-0 rounded-full bg-[#F5A623] px-3 py-1 text-xs font-extrabold text-[#0A3B22]">
+              {identity.status}
+            </span>
+          </div>
+        </div>
+      )}
+      <Card>
       <CardHeader>
         <CardTitle>Student profile + verification documents</CardTitle>
       </CardHeader>
@@ -209,6 +235,7 @@ export function StudentProfileForm({
         </form>
       </CardContent>
     </Card>
+    </>
   );
 }
 

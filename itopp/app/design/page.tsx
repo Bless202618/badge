@@ -59,7 +59,7 @@ function Section({
 }
 
 const swatches = [
-  { name: "Primary / Trust", hex: "#0B5FFF" },
+  { name: "Primary / Trust", hex: "#0C6B3C" },
   { name: "Success", hex: "#16A34A" },
   { name: "Warning", hex: "#D97706" },
   { name: "Danger", hex: "#DC2626" },
@@ -145,13 +145,13 @@ export default function DesignPage() {
           </CardHeader>
           <CardContent>
             <div className="flex flex-wrap gap-1.5 text-xs">
-              <span className="rounded-full bg-[#EFF6FF] px-2.5 py-0.5 font-medium text-[#0B5FFF]">
+              <span className="rounded-full bg-[#E9F7EE] px-2.5 py-0.5 font-medium text-[#0C6B3C]">
                 2/3 skills match
               </span>
-              <span className="rounded-full bg-[#EFF6FF] px-2.5 py-0.5 font-medium text-[#0B5FFF]">
+              <span className="rounded-full bg-[#E9F7EE] px-2.5 py-0.5 font-medium text-[#0C6B3C]">
                 React
               </span>
-              <span className="rounded-full bg-[#EFF6FF] px-2.5 py-0.5 font-medium text-[#0B5FFF]">
+              <span className="rounded-full bg-[#E9F7EE] px-2.5 py-0.5 font-medium text-[#0C6B3C]">
                 Git
               </span>
             </div>

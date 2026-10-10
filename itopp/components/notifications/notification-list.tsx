@@ -42,11 +42,23 @@ export function NotificationList({ items }: { items: Notice[] }) {
         </Button>
       </div>
       {items.map((n) => (
-        <Card key={n.id} className={n.unread ? "border-[#0B5FFF]" : ""}>
-          <CardContent className="pt-4">
-            <b>{n.title}</b>
-            {n.body && <p className="text-sm text-[#374151]">{n.body}</p>}
-            <p className="mt-1 text-xs text-[#6B7280]">{n.when}</p>
+        <Card
+          key={n.id}
+          className={n.unread ? "border-l-4 border-l-[#0C6B3C]" : ""}
+        >
+          <CardContent className="flex gap-3 pt-4">
+            <span
+              className={`mt-1 size-2.5 shrink-0 rounded-full ${
+                n.unread ? "bg-[#0C6B3C]" : "bg-gray-200"
+              }`}
+            />
+            <div className="flex-1">
+              <div className="flex flex-wrap items-baseline justify-between gap-2">
+                <b>{n.title}</b>
+                <span className="shrink-0 text-xs text-[#64748B]">{n.when}</span>
+              </div>
+              {n.body && <p className="mt-0.5 text-sm text-[#374151]">{n.body}</p>}
+            </div>
           </CardContent>
         </Card>
       ))}

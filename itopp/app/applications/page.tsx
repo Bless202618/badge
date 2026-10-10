@@ -49,7 +49,7 @@ export default async function ApplicationsPage() {
         }))}
       />
       <p className="text-sm">
-        <Link href="/openings" className="font-bold text-[#0B5FFF] underline">
+        <Link href="/openings" className="font-bold text-[#0C6B3C] underline">
           ← Back to openings
         </Link>
       </p>

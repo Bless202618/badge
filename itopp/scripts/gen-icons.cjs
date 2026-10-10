@@ -12,7 +12,7 @@ async function main() {
   // Maskable: logo at 80% centered on brand-navy (safe zone for OS masks).
   const logo = await sharp(master).resize(410, 410).png().toBuffer();
   await sharp({
-    create: { width: 512, height: 512, channels: 4, background: "#0A1633" },
+    create: { width: 512, height: 512, channels: 4, background: "#0A3B22" },
   })
     .composite([{ input: logo, left: 51, top: 51 }])
     .png()

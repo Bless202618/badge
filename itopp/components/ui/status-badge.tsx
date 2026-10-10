@@ -21,7 +21,7 @@ const statusStyles: Record<Status, string> = {
   pending: "bg-[#FEF3C7] text-[#D97706]",
   verified: "bg-[#DCFCE7] text-[#16A34A]",
   // Application — pipeline states
-  applied: "bg-[#DBEAFE] text-[#0B5FFF]",
+  applied: "bg-[#D3EDDB] text-[#0C6B3C]",
   shortlisted: "bg-[#DCFCE7] text-[#16A34A]",
   accepted: "bg-[#DCFCE7] text-[#16A34A]",
   // Negative states (shared key: rejected)

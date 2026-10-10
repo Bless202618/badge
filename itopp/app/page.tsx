@@ -29,7 +29,7 @@ export default async function Home() {
   return (
     <main>
       {/* Hero */}
-      <section className="bg-[#0A1633] text-white">
+      <section className="bg-[#0B2E1F] text-white">
         <div className="mx-auto max-w-4xl px-4 py-16 text-center sm:py-24">
           <p className="mx-auto w-fit rounded-full bg-[#16A34A]/20 px-4 py-1 text-xs font-bold tracking-wide text-[#4ADE80]">
             VERIFIED IT PLACEMENTS · SIWES
@@ -88,7 +88,7 @@ export default async function Home() {
             </p>
           </div>
           <div className="rounded-xl border bg-white p-6 shadow-sm">
-            <Search className="mb-3 size-6 text-[#0B5FFF]" />
+            <Search className="mb-3 size-6 text-[#0C6B3C]" />
             <b>Matched first, not buried</b>
             <p className="mt-1 text-sm text-[#475569]">
               Your best-fit openings rank top with reasons shown. No endless
@@ -113,27 +113,27 @@ export default async function Home() {
             How it works
           </h2>
           <div className="mt-8 grid gap-4 sm:grid-cols-3">
-            <div className="rounded-xl bg-[#F8FAFF] p-6">
-              <GraduationCap className="mb-3 size-6 text-[#0B5FFF]" />
-              <p className="text-sm font-extrabold text-[#0B5FFF]">1 · SIGN UP</p>
+            <div className="rounded-xl bg-[#F3F7F4] p-6">
+              <GraduationCap className="mb-3 size-6 text-[#0C6B3C]" />
+              <p className="text-sm font-extrabold text-[#0C6B3C]">1 · SIGN UP</p>
               <b>Students verify once</b>
               <p className="mt-1 text-sm text-[#475569]">
                 Profile + skills + CV + school documents. Approved within 24
                 hours.
               </p>
             </div>
-            <div className="rounded-xl bg-[#F8FAFF] p-6">
-              <Building2 className="mb-3 size-6 text-[#0B5FFF]" />
-              <p className="text-sm font-extrabold text-[#0B5FFF]">2 · POST</p>
+            <div className="rounded-xl bg-[#F3F7F4] p-6">
+              <Building2 className="mb-3 size-6 text-[#0C6B3C]" />
+              <p className="text-sm font-extrabold text-[#0C6B3C]">2 · POST</p>
               <b>Companies publish openings</b>
               <p className="mt-1 text-sm text-[#475569]">
                 Quick post in a minute, or custom criteria with screening
                 questions.
               </p>
             </div>
-            <div className="rounded-xl bg-[#F8FAFF] p-6">
-              <ClipboardCheck className="mb-3 size-6 text-[#0B5FFF]" />
-              <p className="text-sm font-extrabold text-[#0B5FFF]">3 · TRACK</p>
+            <div className="rounded-xl bg-[#F3F7F4] p-6">
+              <ClipboardCheck className="mb-3 size-6 text-[#0C6B3C]" />
+              <p className="text-sm font-extrabold text-[#0C6B3C]">3 · TRACK</p>
               <b>Everyone sees the status</b>
               <p className="mt-1 text-sm text-[#475569]">
                 Applied → Shortlisted → Accepted. Max 5 active applications, no
@@ -153,8 +153,8 @@ export default async function Home() {
 
       {/* Install */}
       <section className="mx-auto max-w-4xl px-4 py-14">
-        <div className="rounded-2xl bg-[#0A1633] p-8 text-center text-white sm:p-10">
-          <Smartphone className="mx-auto mb-3 size-8 text-[#9DBCFF]" />
+        <div className="rounded-2xl bg-[#0B2E1F] p-8 text-center text-white sm:p-10">
+          <Smartphone className="mx-auto mb-3 size-8 text-[#9ADBB0]" />
           <h2 className="text-2xl font-extrabold tracking-tight">
             Take ITopp anywhere
           </h2>

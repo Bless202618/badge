@@ -326,6 +326,7 @@ const postingSchema = z.object({
   skillsRequired: z.array(z.string().trim().min(1).max(40)).max(30),
   customQuestions: z.array(z.string().trim().min(1).max(300)).max(10),
   isQuickPost: z.boolean(),
+  hasStipend: z.boolean(),
 });
 
 type PostingInput = z.infer<typeof postingSchema>;
@@ -358,6 +359,7 @@ export async function createPostingAction(
       skillsRequired: parsed.data.skillsRequired,
       customQuestions: parsed.data.customQuestions,
       isQuickPost: parsed.data.isQuickPost,
+      hasStipend: parsed.data.hasStipend,
       status: "active",
     },
   });
@@ -386,6 +388,7 @@ export async function updatePostingAction(
       durationMonths: parsed.data.durationMonths,
       skillsRequired: parsed.data.skillsRequired,
       customQuestions: parsed.data.customQuestions,
+      hasStipend: parsed.data.hasStipend,
     },
   });
   revalidatePath("/company/postings");

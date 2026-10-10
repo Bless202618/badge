@@ -66,10 +66,30 @@ export default async function OpeningDetailPage({
     _count: true,
   });
 
+  let hue = 150;
+  for (const ch of posting.id) hue = (hue + ch.charCodeAt(0)) % 360;
+
   return (
     <main className="mx-auto max-w-2xl space-y-4 px-4 py-10">
       <PageHeader eyebrow="OPENING" title={posting.title} />
-      <Card className="border-t-4 border-t-[#0B5FFF]">
+      <div
+        className="rounded-2xl p-5 text-white"
+        style={{
+          background: `linear-gradient(135deg, hsl(${hue} 45% 20%), hsl(${(hue + 40) % 360} 55% 30%))`,
+        }}
+      >
+        <span className="rounded-full bg-white/15 px-3 py-1 text-xs font-bold">
+          ✓ ITF-Approved
+        </span>
+        <p className="mt-3 text-xl font-extrabold leading-snug">
+          {posting.company.companyName}
+        </p>
+        <p className="text-sm text-white/75">
+          {posting.location} · {posting.durationMonths} months ·{" "}
+          {posting.hasStipend ? "Stipend: Yes" : "Stipend: No"}
+        </p>
+      </div>
+      <Card>
         <CardHeader>
           <div className="flex items-center justify-between gap-2">
             <CardTitle className="text-xl">{posting.title}</CardTitle>
@@ -94,12 +114,26 @@ export default async function OpeningDetailPage({
             <b>Contact:</b> {posting.company.contactName} ·{" "}
             {posting.company.phone} · {posting.company.website}
           </div>
+          <div>
+            <b>Stipend:</b>{" "}
+            <span
+              className={
+                posting.hasStipend
+                  ? "font-bold text-[#0C6B3C]"
+                  : "font-bold text-[#64748B]"
+              }
+            >
+              {posting.hasStipend
+                ? "Yes — amount discussed at interview"
+                : "No stipend for this opening"}
+            </span>
+          </div>
           {match && (
             <div className="flex flex-wrap gap-1.5">
               {match.reasons.map((r) => (
                 <span
                   key={r}
-                  className="rounded-full bg-[#EFF6FF] px-2.5 py-0.5 text-xs font-medium text-[#0B5FFF]"
+                  className="rounded-full bg-[#E9F7EE] px-2.5 py-0.5 text-xs font-medium text-[#0C6B3C]"
                 >
                   {r}
                 </span>
@@ -139,7 +173,7 @@ export default async function OpeningDetailPage({
             </span>
             <Link
               href="/applications"
-              className="font-bold text-[#0B5FFF] underline"
+              className="font-bold text-[#0C6B3C] underline"
             >
               Track it
             </Link>
@@ -153,7 +187,7 @@ export default async function OpeningDetailPage({
             Get verified to apply — complete your{" "}
             <Link
               href="/student/profile"
-              className="font-bold text-[#0B5FFF] underline"
+              className="font-bold text-[#0C6B3C] underline"
             >
               student profile
             </Link>{" "}
@@ -169,7 +203,7 @@ export default async function OpeningDetailPage({
       ) : (
         <Card>
           <CardContent className="pt-4 text-sm">
-            <Link href="/login" className="font-bold text-[#0B5FFF] underline">
+            <Link href="/login" className="font-bold text-[#0C6B3C] underline">
               Log in
             </Link>{" "}
             as a verified student to apply.

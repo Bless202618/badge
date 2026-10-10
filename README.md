@@ -1,4 +1,4 @@
-# ITopp
+# SIWES Connect
 
 [![Netlify Status](https://api.netlify.com/api/v1/badges/9b72830f-0360-48f6-af13-86172506cf6a/deploy-status)](https://app.netlify.com/projects/stirring-platypus-c55f83/deploys)
 

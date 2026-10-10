@@ -44,7 +44,7 @@ export function VerificationBanner({
       {status !== "verified" && (
         <Link
           href={profileHref}
-          className="mt-2 inline-block text-sm font-bold text-[#0B5FFF] underline"
+          className="mt-2 inline-block text-sm font-bold text-[#0C6B3C] underline"
         >
           {profileLabel}
         </Link>

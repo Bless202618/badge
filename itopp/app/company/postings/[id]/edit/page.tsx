@@ -34,6 +34,7 @@ export default async function EditPostingPage({
           customQuestions: Array.isArray(posting.customQuestions)
             ? (posting.customQuestions as string[])
             : [],
+          hasStipend: posting.hasStipend,
         }}
       />
     </main>

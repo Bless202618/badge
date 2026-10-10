@@ -63,7 +63,7 @@ export function InstallButton({ large }: { large?: boolean }) {
           promptEvent.prompt();
           promptEvent.userChoice.then(() => setPromptEvent(null));
         }}
-        className={`inline-flex items-center justify-center gap-1.5 rounded-lg bg-[#0B5FFF] font-medium text-white hover:bg-[#0047CC] ${
+        className={`inline-flex items-center justify-center gap-1.5 rounded-lg bg-[#0C6B3C] font-medium text-white hover:bg-[#084E2A] ${
           large ? "h-9 px-4 text-sm" : "h-8 px-3 text-sm"
         }`}
       >
@@ -77,7 +77,7 @@ export function InstallButton({ large }: { large?: boolean }) {
     return (
       <Dialog>
         <DialogTrigger
-          className={`inline-flex items-center justify-center gap-1.5 rounded-lg bg-[#0B5FFF] font-medium text-white ${
+          className={`inline-flex items-center justify-center gap-1.5 rounded-lg bg-[#0C6B3C] font-medium text-white ${
             large ? "h-9 px-4 text-sm" : "h-8 px-3 text-sm"
           }`}
         >

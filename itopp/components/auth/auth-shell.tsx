@@ -12,7 +12,7 @@ export function AuthShell({
 }) {
   return (
     <main className="mx-auto grid max-w-4xl gap-6 px-4 py-10 lg:grid-cols-2 lg:items-center">
-      <div className="hidden rounded-2xl bg-[#0A1633] p-8 text-white lg:block">
+      <div className="hidden rounded-2xl bg-[#0A3B22] p-8 text-white lg:block">
         <Link href="/" className="text-xl font-extrabold">
           ITopp
         </Link>
@@ -29,7 +29,7 @@ export function AuthShell({
             </span>
           </li>
           <li className="flex items-start gap-3">
-            <Search className="mt-0.5 size-5 shrink-0 text-[#9DBCFF]" />
+            <Search className="mt-0.5 size-5 shrink-0 text-[#9ADBB0]" />
             <span>
               <b>Matched openings.</b> Best fits ranked first, with reasons
               shown.

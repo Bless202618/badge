@@ -21,6 +21,7 @@ export interface PostingInitial {
   durationMonths: number;
   skillsRequired: string[];
   customQuestions: string[];
+  hasStipend: boolean;
 }
 
 export function PostingForm({ initial }: { initial?: PostingInitial }) {
@@ -41,6 +42,9 @@ export function PostingForm({ initial }: { initial?: PostingInitial }) {
   );
   const [questions, setQuestions] = useState<string[]>(
     initial?.customQuestions ?? []
+  );
+  const [hasStipend, setHasStipend] = useState<boolean>(
+    initial?.hasStipend ?? false
   );
   const [newQ, setNewQ] = useState("");
 
@@ -79,6 +83,7 @@ export function PostingForm({ initial }: { initial?: PostingInitial }) {
           : skills.split(",").map((s) => s.trim()).filter(Boolean),
       customQuestions: mode === "quick" ? [] : questions,
       isQuickPost: mode === "quick",
+      hasStipend,
     };
     setBusy(true);
     const res = initial
@@ -134,7 +139,7 @@ export function PostingForm({ initial }: { initial?: PostingInitial }) {
                 onClick={() => toggleDept(d)}
                 className={`rounded-full border px-3 py-1.5 text-sm font-medium ${
                   departments.includes(d)
-                    ? "border-[#0B5FFF] bg-[#DBEAFE] text-[#0B5FFF]"
+                    ? "border-[#0C6B3C] bg-[#D3EDDB] text-[#0C6B3C]"
                     : "border-gray-300 bg-white text-[#6B7280]"
                 }`}
               >
@@ -230,8 +235,39 @@ export function PostingForm({ initial }: { initial?: PostingInitial }) {
           </>
         )}
 
+        <div>
+          <label className="mb-2 block text-sm font-semibold">
+            Does this opening pay a stipend? (amount stays private — students
+            only see Yes / No)
+          </label>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => setHasStipend(true)}
+              className={`flex-1 rounded-lg border px-3 py-2.5 text-sm font-bold ${
+                hasStipend
+                  ? "border-[#0C6B3C] bg-[#DCFCE7] text-[#0C6B3C]"
+                  : "border-gray-300 bg-white text-[#64748B]"
+              }`}
+            >
+              Yes, stipend paid
+            </button>
+            <button
+              type="button"
+              onClick={() => setHasStipend(false)}
+              className={`flex-1 rounded-lg border px-3 py-2.5 text-sm font-bold ${
+                !hasStipend
+                  ? "border-[#0C6B3C] bg-[#DCFCE7] text-[#0C6B3C]"
+                  : "border-gray-300 bg-white text-[#64748B]"
+              }`}
+            >
+              No stipend
+            </button>
+          </div>
+        </div>
+
         {mode === "quick" && (
-          <p className="rounded-md bg-[#EFF6FF] p-3 text-sm text-[#0B5FFF]">
+          <p className="rounded-md bg-[#E9F7EE] p-3 text-sm text-[#0C6B3C]">
             Quick post: 6-month duration, no screening questions. Students see
             it like any other opening.
           </p>

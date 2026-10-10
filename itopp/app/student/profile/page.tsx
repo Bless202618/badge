@@ -26,6 +26,16 @@ export default async function StudentProfilePage() {
       <VerificationSteps current={step} />
       <StudentProfileForm
         userName={me.name}
+        identity={{
+          department: existing?.department ?? "—",
+          level: existing?.level ?? "—",
+          status:
+            me.status === "verified"
+              ? "Verified"
+              : existing
+                ? "Under review"
+                : "Not submitted",
+        }}
         initial={
           existing
             ? {

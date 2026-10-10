@@ -1,9 +1,11 @@
 import { getSessionUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { companyResponseDays } from "@/lib/response-time";
+import { matchScore } from "@/lib/match";
 import {
   DashboardView,
   type DashboardStat,
+  type TopMatch,
 } from "@/components/dashboard/dashboard-view";
 import { PageHeader } from "@/components/layout/page-header";
 
@@ -28,6 +30,7 @@ export default async function DashboardPage() {
   ]);
 
   let stats: DashboardStat[] = [];
+  let topMatch: TopMatch | null = null;
   if (me.role === "student") {
     const [activeApps, unread] = await Promise.all([
       db.application.count({
@@ -47,6 +50,37 @@ export default async function DashboardPage() {
         href: "/student/profile",
       },
     ];
+    if (studentProfile && me.status === "verified") {
+      const open = await db.posting.findMany({
+        where: { status: "active" },
+        include: { company: { include: { user: true } } },
+      });
+      const ranked = open
+        .filter(
+          (p) =>
+            p.company.verificationStatus === "verified" &&
+            p.company.user.status === "verified"
+        )
+        .map((p) => ({
+          p,
+          m: matchScore(
+            { department: studentProfile.department, skills: studentProfile.skills },
+            { departments: p.departments, skillsRequired: p.skillsRequired }
+          ),
+        }))
+        .sort((a, b) => b.m.score - a.m.score);
+      const best = ranked[0];
+      if (best) {
+        topMatch = {
+          id: best.p.id,
+          title: best.p.title,
+          companyName: best.p.company.companyName,
+          location: best.p.location,
+          score: best.m.score,
+          reasons: best.m.reasons,
+        };
+      }
+    }
   } else if (me.role === "company") {
     const postings = await db.posting.findMany({
       where: { company: { userId: me.id } },
@@ -112,6 +146,7 @@ export default async function DashboardPage() {
           companyProfile: companyProfile
             ? { reviewReason: companyProfile.reviewReason }
             : null,
+          topMatch,
           stats,
         }}
       />
